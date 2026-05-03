@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Claude Code context (local only, never commit)
+CLAUDE.md
+
+# macOS
+.DS_Store
+
+# Temp data files (scraped conference data, intermediate outputs)
+temp/
+*.temp.json
+
+# API keys and local secrets
+.env.local
+secrets.json
