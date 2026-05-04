@@ -16,14 +16,14 @@ from typing import Optional
 from dateutil import parser as dateutil_parser
 from langchain_ollama import ChatOllama
 
-from ..schemas.conference import (
+from schemas.conference import (
     Conference,
     ConferenceDates,
     ConferenceFormat,
     ConferenceLocation,
     CoreRank,
 )
-from ..tools.firecrawl_tool import fetch_core_page, fetch_wikicfp
+from tools.firecrawl_tool import fetch_core_page, fetch_wikicfp
 
 
 _PARSE_SYSTEM = """\
