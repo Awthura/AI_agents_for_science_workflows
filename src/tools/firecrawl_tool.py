@@ -10,7 +10,11 @@ CORE_SEARCH_URL = (
 
 def _app() -> FirecrawlApp:
     key = os.environ.get("FIRECRAWL_API_KEY", "")
-    return FirecrawlApp(api_key=key)
+
+    # Here use the dockerized instance of firecrawl on port 3002 --> before: use docker compose up!
+    api_url = os.environ.get("FIRECRAWL_API_URL", "http://localhost:3002")
+
+    return FirecrawlApp(api_key=key, api_url=api_url)
 
 
 def scrape_to_markdown(url: str) -> str:
