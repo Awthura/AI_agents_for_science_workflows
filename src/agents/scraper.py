@@ -203,6 +203,8 @@ def run_scraper(
                 continue
             if conf.dates.start > cutoff:
                 continue
+            if conf and conf.dates.start < date.today():
+                continue
             seen_ids.add(conf.id)
 
             if lookup_core and conf.acronym:

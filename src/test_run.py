@@ -7,7 +7,7 @@ from agents.scraper import run_scraper
 def main():
     print("Starte den Web-Scraping Agenten...")
 
-    test_queries = ["ICML 2024", "NeurIPS 2024"]
+    test_queries = ["ICML", "NeurIPS"]
 
 
     ollama_model = "llama3"
