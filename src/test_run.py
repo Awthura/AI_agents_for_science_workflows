@@ -50,7 +50,7 @@ def main():
     test_queries = generate_dynamic_queries("Artificial Intelligence", num_queries=3)
 
     # Parameter für lokales Modell
-    ollama_model = "gemma4:e4b" # oder "llama3"
+    ollama_model = "llama3" # oder "gemma4:e4b"
     ollama_url = "http://localhost:11434"
 
     # Speicherort für den Cache
