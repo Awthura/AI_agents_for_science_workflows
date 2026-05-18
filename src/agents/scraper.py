@@ -89,9 +89,20 @@ def _extract_conferences(markdown: str, model: str, base_url: str) -> list[dict]
     prompt = f"{_PARSE_SYSTEM}\n\n---\n{markdown[:8000]}"
     try:
         response = llm.invoke(prompt)
-        data = json.loads(response.content)
+        # Bereinige mögliche Markdown-Fences, die das Modell trotz JSON-Mode generiert
+        raw_content = response.content.strip()
+        if raw_content.startswith("```json"):
+            raw_content = raw_content[7:]
+        if raw_content.startswith("```"):
+            raw_content = raw_content[3:]
+        if raw_content.endswith("```"):
+            raw_content = raw_content[:-3]
+
+        data = json.loads(raw_content.strip())
         return data.get("conferences", [])
-    except Exception:
+    except Exception as e:
+        print(f"\n[!] JSON Parsing Fehler: {e}")
+        print(f"[!] LLM Output war:\n{response.content[:200]}...")  # Zeigt die ersten 200 Zeichen
         return []
 
 
@@ -178,39 +189,59 @@ def _save_cache(cache_path: Path, conferences: list[Conference]) -> None:
 
 
 def run_scraper(
-    queries: list[str],
-    model: str,
-    ollama_base_url: str,
-    cache_path: Path,
-    ttl_days: int = 7,
-    months_ahead: int = 12,
-    lookup_core: bool = True,
+        queries: list[str],
+        model: str,
+        ollama_base_url: str,
+        cache_path: Path,
+        ttl_days: int = 7,  # Wird jetzt eigentlich nicht mehr gebraucht, kann aber bleiben
+        months_ahead: int = 12,
+        lookup_core: bool = True,
 ) -> list[Conference]:
-    if _is_cache_fresh(cache_path, ttl_days):
-        return _load_cache(cache_path)
+    # 1. Bestehende Konferenzen laden, falls die Datei schon existiert
+    conferences: list[Conference] = []
+    if cache_path.exists():
+        print(f"Lade bestehende Konferenzen aus {cache_path}...")
+        conferences = _load_cache(cache_path)
+
+    # 2. Bereits bekannte IDs in das Set laden, um Duplikate beim Scrapen zu verhindern
+    seen_ids: set[str] = {conf.id for conf in conferences}
 
     cutoff = date.today().replace(year=date.today().year + (months_ahead // 12))
-    seen_ids: set[str] = set()
-    conferences: list[Conference] = []
 
+    # 3. Scraping-Logik startet (läuft jetzt IMMER)
     for query in queries:
-        markdown = fetch_wikicfp(query)
-        raw_list = _extract_conferences(markdown, model, ollama_base_url)
+        print(f"\nSuche nach neuen Einträgen für '{query}'...")
 
-        for raw in raw_list:
-            conf = _normalize(raw, query)
-            if conf is None or conf.id in seen_ids:
-                continue
-            if conf.dates.start > cutoff:
-                continue
-            if conf and conf.dates.start < date.today():
-                continue
-            seen_ids.add(conf.id)
+        for page in range(1, 4):
+            markdown = fetch_wikicfp(query, page=page)
 
-            if lookup_core and conf.acronym:
-                conf.core_rank = _lookup_core_rank(conf.acronym, model, ollama_base_url)
+            if not markdown or len(markdown.strip()) < 100:
+                break
 
-            conferences.append(conf)
+            raw_list = _extract_conferences(markdown, model, ollama_base_url)
 
+            if not raw_list:
+                break
+
+            for raw in raw_list:
+                conf = _normalize(raw, query)
+
+                # Hier greift unser Schutz: Ist die ID schon im JSON, wird übersprungen!
+                if conf is None or conf.id in seen_ids:
+                    continue
+                if conf.dates.start > cutoff:
+                    continue
+                if conf and conf.dates.start < date.today():
+                    continue
+
+                print(f"  -> Neue Konferenz gefunden: {conf.name}")
+                seen_ids.add(conf.id)
+
+                if lookup_core and conf.acronym:
+                    conf.core_rank = _lookup_core_rank(conf.acronym, model, ollama_base_url)
+
+                conferences.append(conf)
+
+    # 4. Die alte + die neuen Konferenzen wieder abspeichern
     _save_cache(cache_path, conferences)
     return conferences

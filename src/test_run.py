@@ -1,18 +1,16 @@
 from pathlib import Path
-
-
 from agents.scraper import run_scraper
-
 
 def main():
     print("Starte den Web-Scraping Agenten...")
 
     test_queries = ["ICML", "NeurIPS"]
 
-
-    ollama_model = "llama3"
+    # Parameter für lokales Modell
+    ollama_model = "gemma4:e4b" # oder "llama3"
     ollama_url = "http://localhost:11434"
 
+    # Speicherort für den Cache
     cache_file = Path("temp/conferences.json")
 
     try:
@@ -26,7 +24,6 @@ def main():
             lookup_core=True
         )
 
-
         print(f"\n Erfolgreich abgeschlossen! {len(results)} Konferenzen gefunden.")
 
         for conf in results:
@@ -39,7 +36,6 @@ def main():
 
     except Exception as e:
         print(f"\n Ein Fehler ist aufgetreten: {e}")
-
 
 if __name__ == "__main__":
     main()
