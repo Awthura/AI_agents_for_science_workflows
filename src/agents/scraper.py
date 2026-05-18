@@ -218,6 +218,12 @@ def run_scraper(
             if not markdown or len(markdown.strip()) < 100:
                 break
 
+            # Speichert das Markdown für diese spezifische Query und Seite
+            debug_file = cache_path.parent / f"debug_{query.replace(' ', '_')}_page_{page}.md"
+            debug_file.write_text(markdown, encoding="utf-8")
+            print(f"  [i] Roh-Markdown gespeichert in: {debug_file.name}")
+            # ----------------------
+
             raw_list = _extract_conferences(markdown, model, ollama_base_url)
 
             if not raw_list:
