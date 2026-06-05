@@ -8,7 +8,7 @@ def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]
     """Lässt Llama 3 dynamische Suchbegriffe generieren."""
     print(f"Generiere {num_queries} zufällige Forschungsbereiche für: {base_topic}...")
 
-    llm = ChatOllama(model="llama3", base_url="http://localhost:11434", format="json")
+    llm = ChatOllama(model="llama3.2", base_url="http://localhost:11434", format="json")
 
     prompt = f"""Du bist ein KI-Forscher. Nenne mir {num_queries} hochspezifische, 
     aktuelle Forschungs-Nischen im Bereich '{base_topic}'. Benutze nur maximal 2 Wörter pro Nische.
@@ -50,7 +50,7 @@ def main():
     test_queries = generate_dynamic_queries("Artificial Intelligence", num_queries=3)
 
     # Parameter für lokales Modell
-    ollama_model = "llama3" # oder "gemma4:e4b"
+    ollama_model = "llama3.2" # oder "gemma4:e4b"
     ollama_url = "http://localhost:11434"
 
     # Speicherort für den Cache
