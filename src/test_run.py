@@ -23,7 +23,6 @@ def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]
         data = json.loads(response.content)
         raw_queries = data.get("queries", [])
 
-        # --- NEU: Der "Llama-Bändiger" ---
         # Wir bereinigen die Ausgabe, egal ob sie als String oder als Dict kommt
         clean_queries = []
         for item in raw_queries:
