@@ -17,11 +17,16 @@ from schemas.conference import Conference, DecisionResult, UserPreferences
 
 
 _SYSTEM = """\
-You are an expert academic advisor evaluating conference listings.
-Given a conference and a researcher's profile, determine:
-  1. Is this entry a real, standalone academic conference (not a workshop, \
-     seminar, journal, or course)?
-  2. Is it relevant to the researcher's work?
+You are a strict academic advisor evaluating whether a researcher should attend a conference.
+Given a conference and a researcher's profile, answer two questions:
+
+  1. Is this a real, standalone academic conference? (not a workshop, seminar, journal, \
+     summer school, or symposium embedded in another event)
+  2. Is the conference topic DIRECTLY relevant to the researcher's specific field? \
+     Only mark relevant=true if there is clear, specific topic overlap — not just a vague \
+     or indirect connection. For example: a networking conference is NOT relevant to a \
+     computer vision researcher. A general AI conference is only relevant if the researcher \
+     works on AI topics specifically.
 
 Return ONLY valid JSON — no explanation, no markdown fences.
 

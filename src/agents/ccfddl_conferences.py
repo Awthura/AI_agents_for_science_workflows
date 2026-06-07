@@ -125,6 +125,14 @@ def build_conference_json():
                         acronym = get_acronym(conf, year_data)
                         start_date = parse_start_date(get_safe_str(year_data, 'date'))
 
+                        # Read CORE rank directly from YAML
+                        core_rank = None
+                        rank_data = conf.get('rank', {})
+                        if isinstance(rank_data, dict):
+                            core_raw = rank_data.get('core', '')
+                            if core_raw:
+                                core_rank = str(core_raw).strip()
+
                         conf_dict = {
                             "name": acronym,
                             "acronym": acronym,
@@ -136,6 +144,7 @@ def build_conference_json():
                             "notification_date": "",
                             "url": get_safe_str(year_data, 'link'),
                             "topics": [topic] if topic else [],
+                            "core_rank": core_rank,
                         }
                         formatted_conferences.append(conf_dict)
 

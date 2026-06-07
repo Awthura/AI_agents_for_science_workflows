@@ -26,6 +26,7 @@ from schemas.conference import (
     Conference,
     ConferenceDates,
     ConferenceLocation,
+    CoreRank,
     UserPreferences,
 )
 
@@ -68,7 +69,9 @@ TEST_PROFILES = [
     ),
 ]
 
-MAX_CONFERENCES = 20  # limit to keep test duration reasonable
+MAX_CONFERENCES = 46       # use all available conferences
+MIN_RELEVANCY = 30         # drop conferences below this relevancy score
+TEST_MODELS = ["llama3.2", "gemma2:9b"]  # models to compare (RQ1/RQ2)
 
 
 def _safe_date(s: str) -> date | None:
@@ -105,6 +108,13 @@ def load_conferences(path: Path) -> list[Conference]:
 
         deadline = _safe_date(entry.get("submission_deadline", ""))
 
+        # Parse CORE rank from ccfddl data
+        core_rank = None
+        rank_raw = entry.get("core_rank", "")
+        if rank_raw:
+            rank_map = {"A*": CoreRank.A_STAR, "A": CoreRank.A, "B": CoreRank.B, "C": CoreRank.C}
+            core_rank = rank_map.get(str(rank_raw).strip(), CoreRank.UNRANKED)
+
         try:
             conf = Conference(
                 id=conf_id,
@@ -120,6 +130,7 @@ def load_conferences(path: Path) -> list[Conference]:
                 ),
                 location=location,
                 topics=entry.get("topics", []),
+                core_rank=core_rank,
             )
             conferences.append(conf)
         except Exception:
@@ -128,9 +139,10 @@ def load_conferences(path: Path) -> list[Conference]:
     return conferences
 
 
-def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx: int) -> dict:
+def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx: int, model: str = OLLAMA_MODEL) -> dict:
     console.print(Panel(
         f"[bold]Profile {idx} — {profile.research_title}[/bold]\n"
+        f"Model:    {model}\n"
         f"Location: {profile.address}\n"
         f"Context:  {profile.research_context}",
         expand=False,
@@ -139,7 +151,7 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
     # ── Decision agent ───────────────────────────────────────────────────────
     console.print("\n[yellow][1/2] Running decision agent...[/yellow]")
     accepted, rejected = run_decision_agent(
-        conferences, profile, OLLAMA_MODEL, OLLAMA_URL
+        conferences, profile, model, OLLAMA_URL
     )
     console.print(f"  [✓] Accepted: [green]{len(accepted)}[/green]  |  Rejected: [red]{len(rejected)}[/red]")
 
@@ -149,8 +161,13 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
 
     # ── Scorer ───────────────────────────────────────────────────────────────
     console.print("\n[yellow][2/2] Scoring accepted conferences...[/yellow]")
-    scored = run_scorer(accepted, profile, OLLAMA_MODEL, OLLAMA_URL)
-    console.print(f"  [✓] Scored {len(scored)} conference(s).")
+    scored = run_scorer(accepted, profile, model, OLLAMA_URL)
+
+    # Apply minimum relevancy filter
+    before_filter = len(scored)
+    scored = [c for c in scored if c.scores and c.scores.relevancy >= MIN_RELEVANCY]
+    filtered = before_filter - len(scored)
+    console.print(f"  [✓] Scored {before_filter} conference(s). Filtered out {filtered} with relevancy < {MIN_RELEVANCY}.")
 
     # ── Results table ────────────────────────────────────────────────────────
     console.print(f"\n[bold green]Top {len(scored)} Recommendations:[/bold green]\n")
@@ -193,9 +210,11 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
 
     return {
         "profile": profile.research_title,
+        "model": model,
         "location": profile.address,
         "accepted": len(accepted),
         "rejected": len(rejected),
+        "filtered_low_relevancy": before_filter - len(scored),
         "results": [
             {
                 "rank": i + 1,
@@ -218,8 +237,8 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
 def main():
     console.print(Panel(
         f"[bold cyan]Pipeline Test[/bold cyan]\n"
-        f"Model: [yellow]{OLLAMA_MODEL}[/yellow]  |  Ollama: [yellow]{OLLAMA_URL}[/yellow]\n"
-        f"Data:  [yellow]{DATA_FILE.name}[/yellow]",
+        f"Models: [yellow]{', '.join(TEST_MODELS)}[/yellow]  |  Ollama: [yellow]{OLLAMA_URL}[/yellow]\n"
+        f"Data:   [yellow]{DATA_FILE.name}[/yellow]  |  Min relevancy: [yellow]{MIN_RELEVANCY}[/yellow]",
         expand=False,
     ))
 
@@ -230,19 +249,26 @@ def main():
     console.print(f"[*] Testing with first [bold]{len(conferences)}[/bold] entries.")
     console.print(f"[*] Running [bold]{len(TEST_PROFILES)}[/bold] research profile(s).\n")
 
-    all_results = []
-    for idx, profile in enumerate(TEST_PROFILES, 1):
-        console.rule(f"[bold cyan]Profile {idx} / {len(TEST_PROFILES)}[/bold cyan]")
-        result = run_for_profile(profile, conferences, idx)
-        if result:
-            all_results.append(result)
+    all_model_results = []
+    for model in TEST_MODELS:
+        console.rule(f"[bold blue]Model: {model}[/bold blue]")
+        model_results = {"model": model, "profiles": []}
+
+        for idx, profile in enumerate(TEST_PROFILES, 1):
+            console.rule(f"[bold cyan]Profile {idx} / {len(TEST_PROFILES)} — {model}[/bold cyan]")
+            result = run_for_profile(profile, conferences, idx, model=model)
+            if result:
+                model_results["profiles"].append(result)
+
+        all_model_results.append(model_results)
 
     # ── Export JSON ──────────────────────────────────────────────────────────
     output = {
         "run_at": datetime.now().isoformat(),
-        "model": OLLAMA_MODEL,
+        "models_tested": TEST_MODELS,
         "conferences_tested": len(conferences),
-        "profiles": all_results,
+        "min_relevancy_threshold": MIN_RELEVANCY,
+        "results_by_model": all_model_results,
     }
     RESULTS_FILE.write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
     console.rule()
