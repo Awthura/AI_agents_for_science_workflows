@@ -57,7 +57,7 @@ echo "[✓] All packages installed."
 # ── 6. Verify key imports ────────────────────────────────────────────────────
 echo ""
 echo "[*] Verifying key imports..."
-python -c "import langgraph; print('  [✓] langgraph', langgraph.__version__)"
+python -c "import langgraph; print('  [✓] langgraph')"
 python -c "import langchain_ollama; print('  [✓] langchain_ollama')"
 python -c "import pydantic; print('  [✓] pydantic', pydantic.__version__)"
 python -c "import rich; print('  [✓] rich', rich.__version__)"
