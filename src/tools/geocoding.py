@@ -1,4 +1,5 @@
 import math
+import os
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
@@ -9,6 +10,9 @@ _geolocator = Nominatim(user_agent="conference-recommender/1.0", timeout=10)
 
 
 def geocode(address: str) -> Coordinates | None:
+    # Temporarily bypass the cluster HTTP proxy — Nominatim must be reached directly.
+    # The Squid proxy blocks openstreetmap.org, causing all geocoding to return None.
+    saved = {k: os.environ.pop(k, None) for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy")}
     try:
         location = _geolocator.geocode(address)
         if location:
@@ -16,6 +20,10 @@ def geocode(address: str) -> Coordinates | None:
         return None
     except (GeocoderTimedOut, GeocoderServiceError):
         return None
+    finally:
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
 
 
 def haversine_km(a: Coordinates, b: Coordinates) -> float:

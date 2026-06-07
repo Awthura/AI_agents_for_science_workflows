@@ -73,6 +73,33 @@ MAX_CONFERENCES = 46       # use all available conferences
 MIN_RELEVANCY = 30         # drop conferences below this relevancy score
 TEST_MODELS = ["llama3.2", "gemma2:9b"]  # models to compare (RQ1/RQ2)
 
+# Keywords per CCF topic category that must overlap with the research profile
+# to pass the pre-filter. Empty set = always pass through to LLM.
+_TOPIC_KEYWORDS: dict[str, set[str]] = {
+    "Artificial Intelligence":                              {"ai", "intelligence", "machine learning", "deep learning", "neural", "agent", "llm", "language model", "nlp", "vision", "knowledge", "reasoning"},
+    "Computer-Human Interaction":                           {"human", "interaction", "interface", "user", "hci", "usability", "ux", "accessibility"},
+    "Network System":                                       {"network", "distributed", "protocol", "wireless", "cloud", "routing", "communication", "internet"},
+    "Network and System Security":                          {"security", "cryptograph", "privacy", "encryption", "cyber", "authentication", "attack", "zero-knowledge", "protocol"},
+    "Graphics":                                             {"graphic", "render", "visual", "image", "video", "3d", "vision", "pixel", "animation"},
+    "Database/Data Mining/Information Retrieval":           {"database", "data mining", "retrieval", "sql", "query", "information retrieval", "knowledge graph"},
+    "Computing Theory":                                     {"algorithm", "theory", "complexity", "computation", "mathematical", "formal", "cryptograph", "proof"},
+    "Software Engineering/Operating System/Programming Language Design": {"software", "programming", "operating system", "compiler", "language", "devops", "testing"},
+    "Computer Architecture/Parallel Programming/Storage Technology":     {"architecture", "parallel", "hardware", "storage", "processor", "gpu", "memory", "accelerat"},
+    "Interdiscipline/Mixture/Emerging":                     set(),  # Too broad — always pass to LLM
+}
+
+
+def _passes_topic_filter(conf: "Conference", profile: "UserPreferences") -> bool:
+    """Return False if the conference topic clearly cannot match the research profile."""
+    profile_text = (profile.research_title + " " + profile.research_context).lower()
+    for topic in conf.topics:
+        keywords = _TOPIC_KEYWORDS.get(topic, set())
+        if not keywords:  # empty set = always pass
+            return True
+        if any(kw in profile_text for kw in keywords):
+            return True
+    return False
+
 
 def _safe_date(s: str) -> date | None:
     if not s:
@@ -148,10 +175,15 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
         expand=False,
     ))
 
+    # ── Topic pre-filter (keyword-based, no LLM) ────────────────────────────
+    pre_filtered = [c for c in conferences if _passes_topic_filter(c, profile)]
+    pre_rejected = len(conferences) - len(pre_filtered)
+    console.print(f"\n[*] Topic pre-filter: {len(pre_filtered)} passed, {pre_rejected} rejected (no topic overlap).")
+
     # ── Decision agent ───────────────────────────────────────────────────────
-    console.print("\n[yellow][1/2] Running decision agent...[/yellow]")
+    console.print("[yellow][1/2] Running decision agent...[/yellow]")
     accepted, rejected = run_decision_agent(
-        conferences, profile, model, OLLAMA_URL
+        pre_filtered, profile, model, OLLAMA_URL
     )
     console.print(f"  [✓] Accepted: [green]{len(accepted)}[/green]  |  Rejected: [red]{len(rejected)}[/red]")
 
@@ -212,6 +244,7 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
         "profile": profile.research_title,
         "model": model,
         "location": profile.address,
+        "pre_filtered_topic_mismatch": pre_rejected,
         "accepted": len(accepted),
         "rejected": len(rejected),
         "filtered_low_relevancy": before_filter - len(scored),
