@@ -13,7 +13,7 @@ import json
 
 from langchain_ollama import ChatOllama
 
-from ..schemas.conference import Conference, DecisionResult, UserPreferences
+from schemas.conference import Conference, DecisionResult, UserPreferences
 
 
 _SYSTEM = """\

@@ -14,8 +14,8 @@ import json
 
 from langchain_ollama import ChatOllama
 
-from ..schemas.conference import Conference, ConferenceScores, CoreRank, UserPreferences
-from ..tools.geocoding import distance_to_score, geocode, haversine_km
+from schemas.conference import Conference, ConferenceScores, CoreRank, UserPreferences
+from tools.geocoding import distance_to_score, geocode, haversine_km
 
 
 WEIGHTS = {"relevancy": 0.50, "distance": 0.30, "prestige": 0.20}
