@@ -226,6 +226,7 @@ CLAUDE.md
 # Temp data files (scraped conference data, intermediate outputs)
 temp/
 *.temp.json
+future_conferences.json
 
 # API keys and local secrets
 .env.local
