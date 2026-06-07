@@ -7,6 +7,7 @@ from agents.scraper import run_scraper
 def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]:
     """Lässt Llama 3 dynamische Suchbegriffe generieren."""
     print(f"Generiere {num_queries} zufällige Forschungsbereiche für: {base_topic}...")
+    print(f"Generating {num_queries} research niches for: {base_topic}...")
 
     llm = ChatOllama(model="llama3.2", base_url="http://localhost:11434", format="json")
 
@@ -40,11 +41,12 @@ def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]
 
     except Exception as e:
         print(f"[!] Fehler bei der Query-Generierung: {e}")
-        # Fallback, falls das Modell völlig stolpert
+        print(f"[!] Query generation failed: {e}")
         return [base_topic]
 
 def main():
     print("Starte den Web-Scraping Agenten...")
+    print("Starting web-scraping agent...")
 
     test_queries = generate_dynamic_queries("Artificial Intelligence", num_queries=3)
 
@@ -57,6 +59,7 @@ def main():
 
     if not test_queries:
         print("Keine Suchbegriffe generiert. Breche ab.")
+        print("No search queries generated. Aborting.")
         return
 
     try:
@@ -71,17 +74,19 @@ def main():
         )
 
         print(f"\n Erfolgreich abgeschlossen! {len(results)} Konferenzen gefunden.")
+        print(f"\n Done! {len(results)} conference(s) found.")
 
         for conf in results:
             print("-" * 40)
-            print(f"Name:    {conf.name}")
-            print(f"Akronym: {conf.acronym}")
-            print(f"Datum:   {conf.dates.start} bis {conf.dates.end}")
-            print(f"Ranking: {conf.core_rank}")
-            print(f"Ort:     {conf.location.city if conf.location else 'Unbekannt'}")
+            print(f"Name:              {conf.name}")
+            print(f"Akronym / Acronym: {conf.acronym}")
+            print(f"Datum / Dates:     {conf.dates.start} bis/to {conf.dates.end}")
+            print(f"Ranking:           {conf.core_rank}")
+            print(f"Ort / Location:    {conf.location.city if conf.location else 'Unbekannt / Unknown'}")
 
     except Exception as e:
         print(f"\n Ein Fehler ist aufgetreten: {e}")
+        print(f"\n An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

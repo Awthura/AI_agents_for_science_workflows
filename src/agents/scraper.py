@@ -96,8 +96,10 @@ def _extract_conferences(markdown: str, model: str, base_url: str) -> list[dict]
         return data.get("conferences", [])
     except Exception as e:
         print(f"\n[!!!] KRITISCHER FEHLER beim JSON-Parsing: {e}")
+        print(f"\n[!!!] CRITICAL ERROR during JSON parsing: {e}")
         try:
             print(f"[!!!] LLM Output war (erste 300 Zeichen):\n{response.content[:300]}...")
+            print(f"[!!!] LLM output (first 300 chars):\n{response.content[:300]}...")
         except:
             pass
         return []
@@ -198,6 +200,7 @@ def run_scraper(
     conferences: list[Conference] = []
     if cache_path.exists():
         print(f"Lade bestehende Konferenzen aus {cache_path}...")
+        print(f"  [*] Loading existing conferences from {cache_path}...")
         conferences = _load_cache(cache_path)
 
     seen_ids: set[str] = {conf.id for conf in conferences}
@@ -205,13 +208,16 @@ def run_scraper(
 
     for query in queries:
         print(f"\nSuche nach neuen Einträgen für '{query}'...")
+        print(f"  [*] Searching for new entries for '{query}'...")
 
         for page in range(1, 4):
             print(f"  [>] Hole WikiCFP Seite {page} für '{query}'...")
+            print(f"  [>] Fetching WikiCFP page {page} for '{query}'...")
             markdown = fetch_wikicfp(query, page=page)
 
             if not markdown or len(markdown.strip()) < 100:
                 print("  [!] Leeres oder zu kurzes Markdown erhalten. Breche Paginierung ab.")
+                print("  [!] Empty or too short markdown received. Stopping pagination.")
                 break
 
             # debug_file = cache_path.parent / f"debug_{query.replace(' ', '_')}_page_{page}.md"
@@ -219,49 +225,61 @@ def run_scraper(
             # print(f"  [i] Roh-Markdown gespeichert in: {debug_file.name}")
 
             print("  [>] Sende Text an LLM zur Extraktion (das kann etwas dauern)...")
+            print("  [>] Sending text to LLM for extraction (this may take a while)...")
             raw_list = _extract_conferences(markdown, model, ollama_base_url)
-            
+
             print(f"  [<] LLM hat geantwortet! {len(raw_list)} potenziell passende Einträge gefunden.")
-            
+            print(f"  [<] LLM responded! {len(raw_list)} potential entries found.")
+
             if not raw_list:
                 print("  [!] LLM hat keine Konferenzen im JSON-Format zurückgegeben oder Parsing schlug fehl.")
+                print("  [!] LLM returned no conferences in JSON format or parsing failed.")
                 continue
 
             for raw in raw_list:
                 raw_name = raw.get('name', 'Unbekannt')
                 raw_start = raw.get('start_date', 'Kein Datum')
                 print(f"\n    Prüfe extrahierten Eintrag: {raw_name[:50]}... ({raw_start})")
-                
+                print(f"    [*] Checking entry: {raw_name[:50]}... ({raw_start})")
+
                 conf = _normalize(raw, query)
 
                 if conf is None:
                     print("      [x] Abgelehnt: Normalisierung fehlgeschlagen (meist wegen ungültigem/fehlendem Datum).")
+                    print("      [x] Rejected: Normalization failed (usually invalid or missing date).")
                     continue
-                
+
                 if conf.id in seen_ids:
                     print(f"      [x] Abgelehnt: Konferenz bereits im Cache (ID: {conf.id}).")
+                    print(f"      [x] Rejected: Conference already in cache (ID: {conf.id}).")
                     continue
-                
+
                 if conf.dates.start > cutoff:
                     print(f"      [x] Abgelehnt: Startdatum ({conf.dates.start}) liegt zu weit in der Zukunft (> {cutoff}).")
+                    print(f"      [x] Rejected: Start date ({conf.dates.start}) too far in the future (> {cutoff}).")
                     continue
-                
+
                 if conf.dates.start < date.today():
                     print(f"      [x] Abgelehnt: Startdatum ({conf.dates.start}) liegt in der Vergangenheit.")
+                    print(f"      [x] Rejected: Start date ({conf.dates.start}) is in the past.")
                     continue
 
                 print(f"      [✓] Valide neue Konferenz: {conf.name}")
+                print(f"      [✓] Valid new conference: {conf.name}")
                 seen_ids.add(conf.id)
 
                 if lookup_core and conf.acronym:
                     print(f"      [>] Hole CORE-Ranking für {conf.acronym} (Warte auf LLM...)")
+                    print(f"      [>] Fetching CORE rank for {conf.acronym} (waiting for LLM...)")
                     conf.core_rank = _lookup_core_rank(conf.acronym, model, ollama_base_url)
                     print(f"      [<] CORE-Ranking erhalten: {conf.core_rank}")
+                    print(f"      [<] CORE rank received: {conf.core_rank}")
 
                 conferences.append(conf)
 
             # Nach jeder bearbeiteten Seite speichern wir zur Sicherheit den Zwischenstand
             print(f"  [i] Speichere Zwischenstand ({len(conferences)} Konferenzen in {cache_path})...")
+            print(f"  [i] Saving progress ({len(conferences)} conferences in {cache_path})...")
             _save_cache(cache_path, conferences)
 
     return conferences

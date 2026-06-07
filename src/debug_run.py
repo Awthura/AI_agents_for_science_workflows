@@ -4,6 +4,7 @@ from agents.scraper import run_scraper
 def main():
     print("=== DEBUG RUN START ===")
     print("Starte den Web-Scraping Agenten im Debug-Modus...")
+    print("Starting web-scraping agent in debug mode...")
 
     test_queries = ["ICML", "NeurIPS"]
     ollama_model = "llama3.2:latest"
@@ -25,16 +26,17 @@ def main():
             lookup_core=True
         )
 
-        print("\n=== DEBUG RUN ERGEBNISSE ===")
+        print("\n=== DEBUG RUN ERGEBNISSE / RESULTS ===")
         print(f"Erfolgreich abgeschlossen! {len(results)} Konferenzen gefunden.")
+        print(f"Done! {len(results)} conference(s) found.")
 
         for conf in results:
             print("-" * 40)
-            print(f"Name:    {conf.name}")
-            print(f"Akronym: {conf.acronym}")
-            print(f"Datum:   {conf.dates.start} bis {conf.dates.end}")
-            print(f"Ranking: {conf.core_rank}")
-            print(f"Ort:     {conf.location.city if conf.location else 'Unbekannt'}")
+            print(f"Name:     {conf.name}")
+            print(f"Akronym / Acronym: {conf.acronym}")
+            print(f"Datum / Dates:     {conf.dates.start} bis/to {conf.dates.end}")
+            print(f"Ranking:           {conf.core_rank}")
+            print(f"Ort / Location:    {conf.location.city if conf.location else 'Unbekannt / Unknown'}")
 
     except Exception as e:
         print(f"\n[CRITICAL ERROR]: {e}")

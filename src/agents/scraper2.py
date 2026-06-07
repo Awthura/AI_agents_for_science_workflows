@@ -102,6 +102,7 @@ def _extract_conferences(markdown: str, model: str, base_url: str) -> list[dict]
         return data.get("conferences", [])
     except Exception as e:
         print(f"\n[!] JSON Parsing Fehler: {e}")
+        print(f"\n[!] JSON parsing error: {e}")
         print(f"[!] LLM Output war:\n{response.content[:200]}...")  # Zeigt die ersten 200 Zeichen
         return []
 
@@ -201,6 +202,7 @@ def run_scraper(
     conferences: list[Conference] = []
     if cache_path.exists():
         print(f"Lade bestehende Konferenzen aus {cache_path}...")
+        print(f"  [*] Loading existing conferences from {cache_path}...")
         conferences = _load_cache(cache_path)
 
     # 2. Bereits bekannte IDs in das Set laden, um Duplikate beim Scrapen zu verhindern
@@ -211,6 +213,7 @@ def run_scraper(
     # 3. Scraping-Logik startet (läuft jetzt IMMER)
     for query in queries:
         print(f"\nSuche nach neuen Einträgen für '{query}'...")
+        print(f"  [*] Searching for new entries for '{query}'...")
 
         markdown = fetch_easychair(query)
 
@@ -240,6 +243,7 @@ def run_scraper(
                 continue
 
             print(f"  -> Neue Konferenz gefunden: {conf.name}")
+            print(f"  [✓] New conference found: {conf.name}")
             seen_ids.add(conf.id)
 
             if lookup_core and conf.acronym:

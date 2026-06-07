@@ -11,11 +11,13 @@ TARGET_FOLDER = "conference"
 
 def download_and_extract_conferences():
     print("Agent 1 (Data Fetcher): Lade aktuelle Konferenzdaten herunter...")
+    print("Agent 1 (Data Fetcher): Downloading latest conference data...")
     
     # 1. ZIP-Datei herunterladen
     urllib.request.urlretrieve(REPO_ZIP_URL, ZIP_FILENAME)
     
     print("Agent 1 (Data Fetcher): Entpacke den 'conference' Ordner...")
+    print("Agent 1 (Data Fetcher): Extracting 'conference' folder...")
     
     # 2. ZIP-Datei öffnen und gezielt nur den conference-Ordner entpacken
     with zipfile.ZipFile(ZIP_FILENAME, 'r') as zip_ref:
@@ -29,6 +31,7 @@ def download_and_extract_conferences():
         zip_ref.extractall(members=conference_files)
         
     print("Agent 1 (Data Fetcher): Räume temporäre Dateien auf...")
+    print("Agent 1 (Data Fetcher): Cleaning up temporary files...")
     
     # 3. Ordnerstruktur aufräumen
     # Verschiebe den entpackten conference-Ordner ins Hauptverzeichnis
@@ -42,6 +45,7 @@ def download_and_extract_conferences():
     os.remove(ZIP_FILENAME)
     
     print(f"Erfolg! Der Ordner '{TARGET_FOLDER}' ist nun lokal auf dem neuesten Stand.")
+    print(f"[✓] Success! The '{TARGET_FOLDER}' folder is now up to date.")
 
 if __name__ == "__main__":
     download_and_extract_conferences()
