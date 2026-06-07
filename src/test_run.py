@@ -11,13 +11,12 @@ def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]
 
     llm = ChatOllama(model="llama3.2", base_url="http://localhost:11434", format="json")
 
-    prompt = f"""Du bist ein KI-Forscher. Nenne mir {num_queries} hochspezifische, 
-    aktuelle Forschungs-Nischen im Bereich '{base_topic}'. Benutze nur maximal 2 Wörter pro Nische.
-    Nutze englische Begriffe (z.B. 'Zero-Shot Learning', 'Swarm Robotics').
-    Antworte AUSSCHLIESSLICH in diesem JSON Format:
-    {{
-      "queries": ["nische 1", "nische 2", "nische 3"]
-    }}"""
+    prompt = f"""You are an AI researcher. Give me {num_queries} highly specific, current research niches in the field of '{base_topic}'.
+Use at most 3 words per niche. Use English terms only (e.g. 'Zero-Shot Learning', 'Swarm Robotics').
+Reply ONLY in this exact JSON format:
+{{
+  "queries": ["niche 1", "niche 2", "niche 3"]
+}}"""
 
     try:
         response = llm.invoke(prompt)
@@ -36,7 +35,7 @@ def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]
                 # Wenn Llama brav war und direkt einen String geliefert hat
                 clean_queries.append(item)
 
-        print(f"-> LLM hat sich ausgedacht: {clean_queries}")
+        print(f"-> LLM hat sich ausgedacht / generated: {clean_queries}")
         return clean_queries
 
     except Exception as e:
