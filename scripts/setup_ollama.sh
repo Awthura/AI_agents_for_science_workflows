@@ -18,6 +18,7 @@ DEFAULT_MODELS=("llama3.2" "gemma2:9b")
 # ── Proxy (required for all HTTP traffic on the cluster) ────────────────────
 export HTTP_PROXY='http://fp.cs.ovgu.de:3210/'
 export HTTPS_PROXY='http://fp.cs.ovgu.de:3210/'
+export NO_PROXY='localhost,127.0.0.1'
 export TMPDIR=/var/tmp
 
 echo "======================================================"
@@ -36,7 +37,7 @@ fi
 PROJECT_GROUP=$(stat -c %G /project/ 2>/dev/null || echo "")
 if [ -n "${PROJECT_GROUP}" ]; then
     echo "[*] Setting effective group to '${PROJECT_GROUP}'..."
-    newgrp "${PROJECT_GROUP}" 2>/dev/null || true
+    timeout 2 newgrp "${PROJECT_GROUP}" 2>/dev/null || true
 fi
 
 # ── 2. Create directories ────────────────────────────────────────────────────
@@ -103,7 +104,7 @@ OLLAMA_PID=$!
 # Wait for server to be ready
 echo "[*] Waiting for Ollama server to become ready..."
 for i in $(seq 1 30); do
-    if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+    if curl -sf --noproxy localhost http://localhost:11434/api/tags > /dev/null 2>&1; then
         echo "[✓] Ollama server is ready."
         break
     fi
