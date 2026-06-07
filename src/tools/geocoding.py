@@ -2,7 +2,7 @@ import math
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
-from ..schemas.conference import Coordinates
+from schemas.conference import Coordinates
 
 
 _geolocator = Nominatim(user_agent="conference-recommender/1.0", timeout=10)
