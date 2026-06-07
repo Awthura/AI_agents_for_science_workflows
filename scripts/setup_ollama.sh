@@ -6,7 +6,7 @@
 set -e
 
 OLLAMA_DIR="/project/${LOGNAME}/ollama"
-OLLAMA_BIN="${OLLAMA_DIR}/ollama"
+OLLAMA_BIN="${OLLAMA_DIR}/bin/ollama"
 OLLAMA_MODELS="${OLLAMA_DIR}/models"
 OLLAMA_DOWNLOAD_URL="https://ollama.com/download/ollama-linux-amd64"
 

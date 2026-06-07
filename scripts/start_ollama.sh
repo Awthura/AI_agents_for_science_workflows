@@ -5,7 +5,7 @@
 
 set -e
 
-OLLAMA_BIN="/project/${LOGNAME}/ollama/ollama"
+OLLAMA_BIN="/project/${LOGNAME}/ollama/bin/ollama"
 OLLAMA_MODELS="/project/${LOGNAME}/ollama/models"
 SCREEN_SESSION="ollama"
 
