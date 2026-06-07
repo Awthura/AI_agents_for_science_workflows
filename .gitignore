@@ -227,6 +227,7 @@ CLAUDE.md
 temp/
 *.temp.json
 future_conferences.json
+pipeline_results.json
 
 # API keys and local secrets
 .env.local
