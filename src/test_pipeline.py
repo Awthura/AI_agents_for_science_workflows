@@ -18,11 +18,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agents.decision import run_decision_agent
-from agents.scorer import run_scorer
-from schemas.conference import (
+from src.agents.decision import run_decision_agent
+from src.agents.scorer import run_scorer
+from src.schemas.conference import (
     Conference,
     ConferenceDates,
     ConferenceLocation,
