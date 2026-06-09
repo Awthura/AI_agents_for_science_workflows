@@ -54,7 +54,17 @@ echo "[*] Installing requirements from requirements.txt..."
 pip install -r "${REPO_DIR}/requirements.txt"
 echo "[✓] All packages installed."
 
-# ── 6. Verify key imports ────────────────────────────────────────────────────
+# ── 6. Persist NO_PROXY to ~/.bashrc ────────────────────────────────────────
+# Required so langchain_ollama reaches localhost:11434 without going through the proxy.
+NO_PROXY_LINE="export NO_PROXY='localhost,127.0.0.1'"
+if ! grep -qF "${NO_PROXY_LINE}" ~/.bashrc 2>/dev/null; then
+    echo "${NO_PROXY_LINE}" >> ~/.bashrc
+    echo "[*] Added NO_PROXY to ~/.bashrc"
+fi
+export NO_PROXY='localhost,127.0.0.1'
+echo "[✓] NO_PROXY set."
+
+# ── 8. Verify key imports ────────────────────────────────────────────────────
 echo ""
 echo "[*] Verifying key imports..."
 python -c "import langgraph; print('  [✓] langgraph')"
@@ -62,7 +72,7 @@ python -c "import langchain_ollama; print('  [✓] langchain_ollama')"
 python -c "import pydantic; print('  [✓] pydantic', pydantic.__version__)"
 python -c "import rich; print('  [✓] rich', rich.__version__)"
 
-# ── 7. Create .env if missing ────────────────────────────────────────────────
+# ── 9. Create .env if missing ────────────────────────────────────────────────
 if [ ! -f "${REPO_DIR}/.env" ]; then
     echo ""
     echo "[*] Creating .env from template..."

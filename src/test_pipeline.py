@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import sys
+import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 
@@ -182,24 +183,31 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
 
     # ── Decision agent ───────────────────────────────────────────────────────
     console.print("[yellow][1/2] Running decision agent...[/yellow]")
-    accepted, rejected = run_decision_agent(
+    accepted, rejected, decision_timing = run_decision_agent(
         pre_filtered, profile, model, OLLAMA_URL
     )
-    console.print(f"  [✓] Accepted: [green]{len(accepted)}[/green]  |  Rejected: [red]{len(rejected)}[/red]")
+    console.print(
+        f"  [✓] Accepted: [green]{len(accepted)}[/green]  |  Rejected: [red]{len(rejected)}[/red]  |  "
+        f"Avg: {decision_timing['mean_s']}s  Total: {decision_timing['total_s']}s"
+    )
 
     if not accepted:
         console.print("[red]  No conferences passed the decision agent.[/red]\n")
-        return {"profile": profile.research_title, "accepted": 0, "results": []}
+        return {"profile": profile.research_title, "accepted": 0, "results": [],
+                "timing": {"decision": decision_timing}}
 
     # ── Scorer ───────────────────────────────────────────────────────────────
     console.print("\n[yellow][2/2] Scoring accepted conferences...[/yellow]")
-    scored = run_scorer(accepted, profile, model, OLLAMA_URL)
+    scored, scorer_timing = run_scorer(accepted, profile, model, OLLAMA_URL)
 
     # Apply minimum relevancy filter
     before_filter = len(scored)
     scored = [c for c in scored if c.scores and c.scores.relevancy >= MIN_RELEVANCY]
     filtered = before_filter - len(scored)
-    console.print(f"  [✓] Scored {before_filter} conference(s). Filtered out {filtered} with relevancy < {MIN_RELEVANCY}.")
+    console.print(
+        f"  [✓] Scored {before_filter} conference(s). Filtered out {filtered} with relevancy < {MIN_RELEVANCY}.  "
+        f"Avg: {scorer_timing['mean_s']}s  Total: {scorer_timing['total_s']}s"
+    )
 
     # ── Results table ────────────────────────────────────────────────────────
     console.print(f"\n[bold green]Top {len(scored)} Recommendations:[/bold green]\n")
@@ -248,6 +256,11 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
         "accepted": len(accepted),
         "rejected": len(rejected),
         "filtered_low_relevancy": before_filter - len(scored),
+        "timing": {
+            "decision": decision_timing,
+            "scorer": scorer_timing,
+            "total_s": round(decision_timing["total_s"] + scorer_timing["total_s"], 2),
+        },
         "results": [
             {
                 "rank": i + 1,
@@ -267,6 +280,17 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
     }
 
 
+def _check_ollama() -> None:
+    """Fail fast with a clear message if Ollama is not reachable."""
+    try:
+        req = urllib.request.Request(f"{OLLAMA_URL}/api/tags")
+        urllib.request.urlopen(req, timeout=3)
+    except Exception:
+        console.print(f"\n[bold red][ERROR] Ollama is not running at {OLLAMA_URL}[/bold red]")
+        console.print("  Run:  bash scripts/start_ollama.sh\n")
+        sys.exit(1)
+
+
 def main():
     console.print(Panel(
         f"[bold cyan]Pipeline Test[/bold cyan]\n"
@@ -274,6 +298,8 @@ def main():
         f"Data:   [yellow]{DATA_FILE.name}[/yellow]  |  Min relevancy: [yellow]{MIN_RELEVANCY}[/yellow]",
         expand=False,
     ))
+
+    _check_ollama()
 
     # ── Load data ────────────────────────────────────────────────────────────
     all_conferences = load_conferences(DATA_FILE)

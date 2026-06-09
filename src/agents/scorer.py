@@ -11,6 +11,7 @@ Weighted total = 0.50 * relevancy + 0.30 * distance + 0.20 * prestige
 from __future__ import annotations
 
 import json
+import time
 
 from langchain_ollama import ChatOllama
 
@@ -122,9 +123,20 @@ def run_scorer(
     user_prefs: UserPreferences,
     model: str,
     ollama_base_url: str,
-) -> list[Conference]:
-    scored = [
-        score_conference(conf, user_prefs, model, ollama_base_url)
-        for conf in conferences
-    ]
-    return sorted(scored, key=lambda c: c.scores.total if c.scores else 0, reverse=True)
+) -> tuple[list[Conference], dict]:
+    """Return (sorted scored conferences, timing stats)."""
+    times = []
+    scored = []
+    for conf in conferences:
+        t0 = time.perf_counter()
+        scored.append(score_conference(conf, user_prefs, model, ollama_base_url))
+        times.append(round(time.perf_counter() - t0, 3))
+
+    timing = {
+        "calls": len(times),
+        "total_s": round(sum(times), 2),
+        "mean_s": round(sum(times) / len(times), 3) if times else 0,
+        "min_s": round(min(times), 3) if times else 0,
+        "max_s": round(max(times), 3) if times else 0,
+    }
+    return sorted(scored, key=lambda c: c.scores.total if c.scores else 0, reverse=True), timing
