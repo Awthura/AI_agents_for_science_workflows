@@ -176,6 +176,15 @@ def run_for_profile(profile: UserPreferences, conferences: list[Conference], idx
         expand=False,
     ))
 
+    # ── Pre-geocode user address once (avoids N repeated lookups per conference) ─
+    if profile.coordinates is None:
+        from tools.geocoding import geocode
+        profile.coordinates = geocode(profile.address)
+        if profile.coordinates:
+            console.print(f"[*] Geocoded location: {profile.coordinates.lat:.3f}, {profile.coordinates.lon:.3f}")
+        else:
+            console.print("[!] Could not geocode researcher address — distance scores will use neutral value.")
+
     # ── Topic pre-filter (keyword-based, no LLM) ────────────────────────────
     pre_filtered = [c for c in conferences if _passes_topic_filter(c, profile)]
     pre_rejected = len(conferences) - len(pre_filtered)

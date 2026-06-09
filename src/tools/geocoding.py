@@ -1,5 +1,8 @@
 import math
 import os
+import time
+from functools import lru_cache
+
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
@@ -7,13 +10,28 @@ from schemas.conference import Coordinates
 
 
 _geolocator = Nominatim(user_agent="conference-recommender/1.0", timeout=10)
+_last_request_time: float = 0.0
+_MIN_INTERVAL = 1.1  # Nominatim policy: max 1 request/second
 
 
+def _rate_limit() -> None:
+    """Ensure at least _MIN_INTERVAL seconds between Nominatim requests."""
+    global _last_request_time
+    elapsed = time.monotonic() - _last_request_time
+    if elapsed < _MIN_INTERVAL:
+        time.sleep(_MIN_INTERVAL - elapsed)
+    _last_request_time = time.monotonic()
+
+
+@lru_cache(maxsize=256)
 def geocode(address: str) -> Coordinates | None:
+    """Geocode an address to coordinates. Results are cached so each unique
+    address is only queried once — avoids hammering Nominatim with repeated
+    lookups of the same user address across N conferences."""
     # Temporarily bypass the cluster HTTP proxy — Nominatim must be reached directly.
-    # The Squid proxy blocks openstreetmap.org, causing all geocoding to return None.
     saved = {k: os.environ.pop(k, None) for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy")}
     try:
+        _rate_limit()
         location = _geolocator.geocode(address)
         if location:
             return Coordinates(lat=location.latitude, lon=location.longitude)
