@@ -10,6 +10,7 @@ Returns a DecisionResult attached to the conference.
 from __future__ import annotations
 
 import json
+import time
 
 from langchain_ollama import ChatOllama
 
@@ -91,13 +92,23 @@ def run_decision_agent(
     user_prefs: UserPreferences,
     model: str,
     ollama_base_url: str,
-) -> tuple[list[Conference], list[Conference]]:
-    """Return (accepted, rejected) conference lists."""
+) -> tuple[list[Conference], list[Conference], dict]:
+    """Return (accepted, rejected, timing) where timing has inference stats."""
     accepted, rejected = [], []
+    times = []
     for conf in conferences:
+        t0 = time.perf_counter()
         conf = decide(conf, user_prefs, model, ollama_base_url)
+        times.append(round(time.perf_counter() - t0, 3))
         if conf.decision and conf.decision.valid and conf.decision.relevant:
             accepted.append(conf)
         else:
             rejected.append(conf)
-    return accepted, rejected
+    timing = {
+        "calls": len(times),
+        "total_s": round(sum(times), 2),
+        "mean_s": round(sum(times) / len(times), 3) if times else 0,
+        "min_s": round(min(times), 3) if times else 0,
+        "max_s": round(max(times), 3) if times else 0,
+    }
+    return accepted, rejected, timing
