@@ -8,7 +8,7 @@ from dateutil import parser as dateutil_parser
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-REPO_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", "ccf-deadlines", "conference"))
+REPO_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", "conference"))
 
 
 def get_safe_str(obj, attr_path, default=""):
@@ -134,7 +134,7 @@ def build_conference_json():
                                 core_rank = str(core_raw).strip()
 
                         conf_dict = {
-                            "name": acronym,
+                            "name": get_safe_str(conf, 'description'),
                             "acronym": acronym,
                             "start_date": start_date,
                             "end_date": "",
@@ -159,7 +159,7 @@ def build_conference_json():
         json.dump(final_output, f, indent=2, ensure_ascii=False)
 
     print(f"Agent 1: Erfolgreich {len(formatted_conferences)} zukünftige Konferenzen extrahiert und in '{output_filename}' gespeichert. ({skipped} vergangene Einträge übersprungen.)")
-    print(f"[✓] Extracted {len(formatted_conferences)} future conferences ({skipped} past entries skipped). Saved to '{output_filename}'.")
+    print(f"[OK] Extracted {len(formatted_conferences)} future conferences ({skipped} past entries skipped). Saved to '{output_filename}'.")
 
 
 if __name__ == "__main__":

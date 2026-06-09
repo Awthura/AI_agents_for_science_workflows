@@ -228,6 +228,7 @@ temp/
 *.temp.json
 future_conferences.json
 pipeline_results.json
+conference/
 
 # API keys and local secrets
 .env.local
