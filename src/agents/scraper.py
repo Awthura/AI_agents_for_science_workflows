@@ -22,7 +22,7 @@ from tools.firecrawl_tool import fetch_core_page, fetch_wikicfp
 
 _PARSE_SYSTEM = """\
 You are a structured data extraction assistant. Extract ALL academic conference listings \
-from the provided text. Return ONLY valid JSON — no explanation, no markdown fences.
+from the provided text. If there is 'CANCELED' in the name: IGNORE this conference. Return ONLY valid JSON — no explanation, no markdown fences.
 
 Schema:
 {
