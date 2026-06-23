@@ -21,22 +21,24 @@ def _app() -> FirecrawlApp:
 def scrape_to_markdown(url: str) -> str:
     app = _app()
     try:
-        # Sauberer Aufruf mit der aktuellen Syntax
         result = app.scrape(
             url,
             formats=["markdown"],
             only_main_content=True
         )
 
-        # Flexibler Check: Ist es ein Dictionary oder ein Objekt?
         if isinstance(result, dict):
             return result.get("markdown", "")
         else:
-            # Bei Objekten greifen wir direkt auf das Attribut zu
             return getattr(result, "markdown", "")
 
     except Exception as exc:
-        return f"[scrape error: {exc}]"
+        # FEHLERBEHANDLUNG:
+        # Gib in der Konsole aus, dass die Seite nicht erreichbar war,
+        # und gib einen leeren String zurück, damit die Paginierung sofort stoppt.
+        print(f"  [!] HTTP/Netzwerk-Fehler bei {url}")
+        print(f"      Details: {exc}")
+        return ""
 
 
 def fetch_wikicfp(query: str, page: int = 1, fetch_current_year: bool = True) -> str:
