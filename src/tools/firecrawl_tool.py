@@ -60,3 +60,15 @@ def fetch_easychair(query: str) -> str:
     url = EASYCHAIR_SEARCH_URL.format(query=safe_query)
     print(f"Scrape URL: {url}")
     return scrape_to_markdown(url)
+
+
+def fetch_cfplist(query: str, page: int = 1) -> str:
+    """
+    Scrapt die Suchergebnisseite von cfplist.com für den gegebenen Suchbegriff.
+    Nutzt Firecrawl, um den HTML-Inhalt der Ergebnisseite als Markdown zurückzugeben.
+    """
+    encoded_query = urllib.parse.quote_plus(query)
+    url = f"https://www.cfplist.com/search?q={encoded_query}&page={page}"
+
+    print(f"Scrape URL: {url}")
+    return scrape_to_markdown(url)

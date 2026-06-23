@@ -1,13 +1,16 @@
 import json
 from pathlib import Path
+from dotenv import load_dotenv  # Neu: Lädt Umgebungsvariablen (.env)
 from langchain_ollama import ChatOllama
 from agents.scraper import run_scraper
 
+# Lade Umgebungsvariablen direkt beim Start (wichtig für Firecrawl)
+load_dotenv()
+
 
 def generate_dynamic_queries(base_topic: str, num_queries: int = 3) -> list[str]:
-    """Lässt Llama 3 dynamische Suchbegriffe generieren."""
+    """Lässt ein lokales LLM dynamische Suchbegriffe generieren."""
     print(f"Generiere {num_queries} zufällige Forschungsbereiche für: {base_topic}...")
-    print(f"Generating {num_queries} research niches for: {base_topic}...")
 
     llm = ChatOllama(model="llama3.2", base_url="http://localhost:11434", format="json")
 
@@ -20,45 +23,56 @@ Reply ONLY in this exact JSON format:
 
     try:
         response = llm.invoke(prompt)
-        data = json.loads(response.content)
+
+        # --- FIX: Robustes Markdown/JSON Parsing ---
+        raw_content = response.content.strip()
+        if raw_content.startswith("```json"):
+            raw_content = raw_content[7:]
+        if raw_content.startswith("```"):
+            raw_content = raw_content[3:]
+        if raw_content.endswith("```"):
+            raw_content = raw_content[:-3]
+
+        data = json.loads(raw_content.strip())
         raw_queries = data.get("queries", [])
 
         # Wir bereinigen die Ausgabe, egal ob sie als String oder als Dict kommt
         clean_queries = []
         for item in raw_queries:
             if isinstance(item, dict):
-                # Zieht den Text aus dem Dict heraus (z.B. 'Explainable AI (XAI)')
+                # Zieht den Text aus dem Dict heraus
                 val = item.get("name") or (list(item.values())[0] if item else "")
                 if val:
-                    clean_queries.append(str(val))
+                    clean_queries.append(str(val).strip())
             elif isinstance(item, str):
-                # Wenn Llama brav war und direkt einen String geliefert hat
-                clean_queries.append(item)
+                clean_queries.append(item.strip())
 
-        print(f"-> LLM hat sich ausgedacht / generated: {clean_queries}")
+        print(f"-> LLM hat generiert: {clean_queries}")
         return clean_queries
 
     except Exception as e:
         print(f"[!] Fehler bei der Query-Generierung: {e}")
-        print(f"[!] Query generation failed: {e}")
+        print(f"[!] Fallback auf Basis-Thema: ['{base_topic}']")
         return [base_topic]
+
 
 def main():
     print("Starte den Web-Scraping Agenten...")
-    print("Starting web-scraping agent...")
 
-    test_queries = generate_dynamic_queries("Artificial Intelligence", num_queries=3)
-
-    # Parameter für lokales Modell
-    ollama_model = "llama3.2" # oder "gemma4:e4b"
+    # Konfiguration
+    base_topic = "Artificial Intelligence"
+    ollama_model = "llama3.2"
     ollama_url = "http://localhost:11434"
 
-    # Speicherort für den Cache
-    cache_file = Path("temp/conferences.json")
+    # Stelle sicher, dass der temp-Ordner existiert, bevor Dateien übergeben werden
+    cache_dir = Path("temp")
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / "conferences.json"
+
+    test_queries = generate_dynamic_queries(base_topic, num_queries=3)
 
     if not test_queries:
         print("Keine Suchbegriffe generiert. Breche ab.")
-        print("No search queries generated. Aborting.")
         return
 
     try:
@@ -72,20 +86,20 @@ def main():
             lookup_core=True
         )
 
-        print(f"\n Erfolgreich abgeschlossen! {len(results)} Konferenzen gefunden.")
-        print(f"\n Done! {len(results)} conference(s) found.")
+        print(f"\n[✓] Erfolgreich abgeschlossen! {len(results)} Konferenzen gefunden/geprüft.")
 
         for conf in results:
             print("-" * 40)
-            print(f"Name:              {conf.name}")
-            print(f"Akronym / Acronym: {conf.acronym}")
-            print(f"Datum / Dates:     {conf.dates.start} bis/to {conf.dates.end}")
-            print(f"Ranking:           {conf.core_rank}")
-            print(f"Ort / Location:    {conf.location.city if conf.location else 'Unbekannt / Unknown'}")
+            print(f"Name:           {conf.name}")
+            print(f"Akronym:        {conf.acronym or 'Keins'}")
+            print(f"Datum:          {conf.dates.start} bis {conf.dates.end or 'Unbekannt'}")
+            print(f"Ranking:        {conf.core_rank.name if conf.core_rank else 'Nicht gerankt'}")
+            print(f"Ort:            {conf.location.city if conf.location else 'Unbekannt'}")
+            print(f"Quelle:         {conf.source_url}")
 
     except Exception as e:
-        print(f"\n Ein Fehler ist aufgetreten: {e}")
-        print(f"\n An error occurred: {e}")
+        print(f"\n[!] Ein kritischer Fehler ist aufgetreten: {e}")
+
 
 if __name__ == "__main__":
     main()
