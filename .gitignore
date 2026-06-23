@@ -220,6 +220,10 @@ __marimo__/
 # Claude Code context (local only, never commit)
 CLAUDE.md
 
+# IT admin request document (local only)
+it_admin_request.md
+it_admin_request.pdf
+
 # macOS
 .DS_Store
 
