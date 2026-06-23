@@ -17,7 +17,7 @@ def _app() -> FirecrawlApp:
     return FirecrawlApp(api_key=key, api_url=api_url)
 
 
-def scrape_to_markdown(url: str) -> str:
+def scrape_to_markdown(url: str, save_dir: str = "benchmark_data") -> str:
     app = _app()
     try:
         result = app.scrape(
@@ -26,10 +26,18 @@ def scrape_to_markdown(url: str) -> str:
             only_main_content=True
         )
 
-        if isinstance(result, dict):
-            return result.get("markdown", "")
-        else:
-            return getattr(result, "markdown", "")
+        content = result.get("markdown", "") if isinstance(result, dict) else getattr(result, "markdown", "")
+
+        # Minimalistisches Speichern der Markdown-Dateien für das Benchmarking
+        if save_dir and content.strip():
+            os.makedirs(save_dir, exist_ok=True)
+            # URL-Bereinigung für einen gültigen Dateinamen
+            clean_name = url.split("://")[-1].replace("/", "_").replace("?", "_").replace("&", "_").replace("=", "_")
+            filepath = os.path.join(save_dir, f"{clean_name[:150]}.md")
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
+
+        return content
 
     except Exception as exc:
         # FEHLERBEHANDLUNG:
