@@ -32,10 +32,13 @@ If geocoding fails (location string is ambiguous, service unavailable, etc.), th
 
 Once both points have coordinates, the straight-line distance on the Earth's surface is computed using the **Haversine formula**. This gives the great-circle distance — the shortest path between two points on a sphere.
 
-```
-a = sin²(Δlat/2) + cos(lat₁) · cos(lat₂) · sin²(Δlon/2)
-distance = 2R · arcsin(√a)        where R = 6371 km
-```
+$$
+a = \sin^2\!\left(\frac{\phi_2 - \phi_1}{2}\right) + \cos\phi_1 \cdot \cos\phi_2 \cdot \sin^2\!\left(\frac{\lambda_2 - \lambda_1}{2}\right)
+$$
+
+$$
+d = 2R \cdot \arcsin\!\left(\sqrt{a}\right), \qquad R = 6371 \text{ km}
+$$
 
 This is more accurate than a flat-plane distance, especially over long distances.
 
@@ -59,11 +62,9 @@ A raw distance in km is not directly useful as a score. We need a function that:
 
 We use **exponential decay**:
 
-```
-score = 100 × e^(−3 × km / max_km)
-
-where max_km = 15,000 km (roughly half the Earth's circumference)
-```
+$$
+s_{\text{dist}}(d) = 100 \cdot \exp\!\left(-\frac{3d}{d_{\max}}\right), \qquad d_{\max} = 15{,}000 \text{ km}
+$$
 
 ```python
 def distance_to_score(km: float, max_km: float = 15_000.0) -> float:
@@ -159,8 +160,8 @@ The geocoding implementation includes:
 
 ## Integration in the Total Score
 
-```
-Total = 0.50 × Relevancy + 0.30 × Distance + 0.20 × Prestige
-```
+$$
+s_{\text{total}} = 0.50 \cdot s_{\text{rel}} + 0.30 \cdot s_{\text{dist}} + 0.20 \cdot s_{\text{pres}}
+$$
 
 Distance contributes **30%**. A conference 10,000 km away (score ~13) vs. one 500 km away (score ~90) creates a difference of ~23 points in the distance component, or ~7 points in the total score. Relevancy and prestige dominate — distance is a tiebreaker and travel-cost proxy, not a decisive filter.
