@@ -9,7 +9,6 @@ CORE_SEARCH_URL = (
     "https://portal.core.edu.au/conf-ranks/"
     "?search={acronym}&by=acronym&source=CORE2023&sort=atitle&page=1"
 )
-EASYCHAIR_SEARCH_URL = "https://easychair.org/cfp/search?query={query}"
 
 
 def _app() -> FirecrawlApp:
@@ -54,13 +53,6 @@ def fetch_wikicfp(query: str, page: int = 1, fetch_current_year: bool = True) ->
 def fetch_core_page(acronym: str) -> str:
     safe_acronym = urllib.parse.quote_plus(acronym.upper())
     url = CORE_SEARCH_URL.format(acronym=safe_acronym)
-    return scrape_to_markdown(url)
-
-
-def fetch_easychair(query: str) -> str:
-    safe_query = urllib.parse.quote_plus(query)
-    url = EASYCHAIR_SEARCH_URL.format(query=safe_query)
-    print(f"Scrape URL: {url}")
     return scrape_to_markdown(url)
 
 
