@@ -39,7 +39,7 @@ def main():
             time.sleep(1.5)
 
     print("-" * 60)
-    print("[✓] Skript beendet. Die 9 Markdown-Dateien liegen nun im Ordner 'benchmark_data'.")
+    print("[✓] Skript beendet. Die 9 Markdown-Dateien liegen nun im Ordner 'benchmark'.")
 
 
 if __name__ == "__main__":

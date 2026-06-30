@@ -17,7 +17,7 @@ def _app() -> FirecrawlApp:
     return FirecrawlApp(api_key=key, api_url=api_url)
 
 
-def scrape_to_markdown(url: str, save_dir: str = "benchmark_data") -> str:
+def scrape_to_markdown(url: str, save_dir: str = "") -> str:
     app = _app()
     try:
         result = app.scrape(
