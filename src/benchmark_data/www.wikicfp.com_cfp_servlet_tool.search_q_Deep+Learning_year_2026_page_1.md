@@ -63,32 +63,32 @@
 
 ### Matched Call For Papers for "Deep Learning"
 
-|     |     |     |     |
-| --- | --- | --- | --- |
-| Event | When | Where | Deadline |
-| [ICMV 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194144&copyownerid=13881) | SPIE--2026 19th International Conference on Machine Vision (ICMV 2026) |     |     |
-| Oct 15, 2026 - Oct 18, 2026 | Budapest, Hungary | Jul 20, 2026 |
-| [ICAAI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194398&copyownerid=13881) | IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026) |     |     |
-| Sep 21, 2026 - Sep 24, 2026 | London, UK | Jul 15, 2026 |
-| [CAIT 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194522&copyownerid=13881) | 2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026) |     |     |
-| Nov 13, 2026 - Nov 15, 2026 | Guiyang, Guizhou, China | Jul 20, 2026 |
-| [VPAD 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200183&copyownerid=198704) | CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving |     |     |
-| Sep 18, 2026 - Sep 20, 2026 | Jiangxi Normal University | Jul 24, 2026 (Aug 28, 2026) |
-| [EAIT 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194394&copyownerid=13881) | 2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026) |     |     |
-| Sep 21, 2026 - Sep 24, 2026 | London, UK | Jul 15, 2026 |
-| [ACM-AAMLDS 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200077&copyownerid=163993) | 2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science (AAMLDS 2026) |     |     |
-| Dec 4, 2026 - Dec 6, 2026 | Xiamen, China | Nov 10, 2026 |
-| [EAIT--EI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194396&copyownerid=13881) | 2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026) |     |     |
-| Sep 21, 2026 - Sep 24, 2026 | London, UK | Jul 15, 2026 |
-| [ICAISE 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=190972&copyownerid=13881) | ACM--2026 5th International Conference on Artificial Intelligence and Software Engineering (ICAISE 2026) |     |     |
-| Aug 21, 2026 - Aug 23, 2026 | Tokyo, Japan | Jul 10, 2026 |
-| [CAIT--EI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194523&copyownerid=13881) | 2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026) |     |     |
-| Nov 13, 2026 - Nov 15, 2026 | Guiyang, Guizhou, China | Jul 20, 2026 |
-| [AMS 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=195388&copyownerid=33993) | Advanced Medical Sciences: An International Journal |     |     |
-| N/A | N/A | Jun 30, 2026 |
-| [NLP 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=189376&copyownerid=170233) | 15th International Conference on Natural Language Processing |     |     |
-| Aug 22, 2026 - Aug 23, 2026 | Dubai, UAE | Jun 27, 2026 |
+|                                                                                                                              |     |     |     |
+|------------------------------------------------------------------------------------------------------------------------------| --- | --- | --- |
+| Event                                                                                                                        | When | Where | Deadline |
+| [ICMV 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194144&copyownerid=13881)                               | SPIE--2026 19th International Conference on Machine Vision (ICMV 2026) |     |     |
+| Oct 15, 2026 - Oct 18, 2026                                                                                                  | Budapest, Hungary | Jul 20, 2026 |
+| [ICAAI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194398&copyownerid=13881)                              | IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026) |     |     |
+| Sep 21, 2026 - Sep 24, 2026                                                                                                  | London, UK | Jul 15, 2026 |
+| [CAIT 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194522&copyownerid=13881)                               | 2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026) |     |     |
+| Nov 13, 2026 - Nov 15, 2026                                                                                                  | Guiyang, Guizhou, China | Jul 20, 2026 |
+| [VPAD 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200183&copyownerid=198704)                              | CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving |     |     |
+| Sep 18, 2026 - Sep 20, 2026                                                                                                  | Jiangxi Normal University | Jul 24, 2026 (Aug 28, 2026) |
+| [EAIT 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194394&copyownerid=13881)                               | 2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026) |     |     |
+| Sep 21, 2026 - Sep 24, 2026                                                                                                  | London, UK | Jul 15, 2026 |
+| [ACM-AAMLDS 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200077&copyownerid=163993)                        | 2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science (AAMLDS 2026) |     |     |
+| Dec 4, 2026 - Dec 6, 2026                                                                                                    | Xiamen, China | Nov 10, 2026 |
+| ['CANCELED' EAIT--EI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194396&copyownerid=13881)                | 2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026) |     |     |
+| Sep 21, 2026 - Sep 24, 2026                                                                                                  | London, UK | Jul 15, 2026 |
+| [ICAISE 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=190972&copyownerid=13881)                             | ACM--2026 5th International Conference on Artificial Intelligence and Software Engineering (ICAISE 2026) |     |     |
+| Aug 21, 2026 - Aug 23, 2026                                                                                                  | Tokyo, Japan | Jul 10, 2026 |
+| [CAIT--EI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194523&copyownerid=13881)                           | 2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026) |     |     |
+| Nov 13, 2026 - Nov 15, 2026                                                                                                  | Guiyang, Guizhou, China | Jul 20, 2026 |
+| [AMS 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=195388&copyownerid=33993)                                | Advanced Medical Sciences: An International Journal |     |     |
+| N/A                                                                                                                          | N/A | Jun 30, 2026 |
+| [NLP 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=189376&copyownerid=170233)                               | 15th International Conference on Natural Language Processing |     |     |
+| Aug 22, 2026 - Aug 23, 2026                                                                                                  | Dubai, UAE | Jun 27, 2026 |
 | [Behaviour, Learning & the Economy 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=192749&copyownerid=197528) | ERUNI ERC London Launch Workshop Behaviour, Learning & the Economy |     |     |
-| May 7, 2026 - May 7, 2026 | London | Mar 22, 2026 |
-| [Learning & Optimization 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=191020&copyownerid=66551) | ASCE EMI Minisymposium on Probabilistic Learning, Stochastic Optimization, and Digital Twins |     |     |
-| Jun 2, 2026 - Jun 5, 2026 | Boulder, Colorado, USA | Jan 15, 2026 |
+| May 7, 2026 - May 7, 2026                                                                                                    | London | Mar 22, 2026 |
+| [Learning & Optimization 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=191020&copyownerid=66551)            | ASCE EMI Minisymposium on Probabilistic Learning, Stochastic Optimization, and Digital Twins |     |     |
+| Jun 2, 2026 - Jun 5, 2026                                                                                                    | Boulder, Colorado, USA | Jan 15, 2026 |

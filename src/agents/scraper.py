@@ -35,7 +35,6 @@ Schema:
       "city": "city name or empty string",
       "country": "country name or empty string",
       "submission_deadline": "YYYY-MM-DD or empty string",
-      "notification_date": "YYYY-MM-DD or empty string",
       "url": "official website URL or empty string",
       "topics": ["keyword1", "keyword2"]
     }
