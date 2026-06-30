@@ -1,0 +1,82 @@
+{
+    "conferences": [
+        {
+            "name": "SPIE--2026 19th International Conference on Machine Vision (ICMV 2026)",
+            "acronym": "ICMV",
+            "start_date": "2026-10-15",
+            "end_date": "2026-10-18",
+            "city": "Budapest, Hungary",
+            "country": "Hungary",
+            "submission_deadline": "2026-07-20",
+            "url": "",
+            "topics": [
+                "machine learning"
+            ]
+        },
+        {
+            "name": "IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026)",
+            "acronym": "ICAAI",
+            "start_date": "2026-09-21",
+            "end_date": "2026-09-24",
+            "city": "London, UK",
+            "country": "UK",
+            "submission_deadline": "2026-07-15",
+            "url": "",
+            "topics": [
+                "artificial intelligence"
+            ]
+        },
+        {
+            "name": "2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026)",
+            "acronym": "CAIT",
+            "start_date": "2026-11-13",
+            "end_date": "2026-11-15",
+            "city": "Guiyang, Guizhou, China",
+            "country": "China",
+            "submission_deadline": "2026-07-20",
+            "url": "",
+            "topics": [
+                "computers and artificial intelligence technology"
+            ]
+        },
+        {
+            "name": "CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving",
+            "acronym": "VPAD",
+            "start_date": "2026-09-18",
+            "end_date": "2026-09-20",
+            "city": "Jiangxi Normal University",
+            "country": "",
+            "submission_deadline": "2026-07-24",
+            "url": "",
+            "topics": [
+                "3D vision perception for autonomous driving"
+            ]
+        },
+        {
+            "name": "2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026)",
+            "acronym": "EAIT",
+            "start_date": "2026-09-21",
+            "end_date": "2026-09-24",
+            "city": "London, UK",
+            "country": "UK",
+            "submission_deadline": "2026-07-15",
+            "url": "",
+            "topics": [
+                "education and artificial intelligence technologies"
+            ]
+        },
+        {
+            "name": "2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science (AAMLDS 2026)",
+            "acronym": "ACM-AAMLDS",
+            "start_date": "2026-12-04",
+            "end_date": "2026-12-06",
+            "city": "Xiamen, China",
+            "country": "China",
+            "submission_deadline": "2026-11-10",
+            "url": "",
+            "topics": [
+                "advanced algorithms, machine learning, and data science"
+            ]
+        }
+    ]
+}
