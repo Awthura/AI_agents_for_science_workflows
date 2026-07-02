@@ -73,7 +73,20 @@ if [ ! -f "${OLLAMA_BIN}" ]; then
         exit 1
     fi
     echo "[*] Extracting to ${OLLAMA_DIR}..."
-    tar --zstd -xf "${OLLAMA_ARCHIVE}" -C "${OLLAMA_DIR}"
+    if command -v zstd &>/dev/null; then
+        tar --zstd -xf "${OLLAMA_ARCHIVE}" -C "${OLLAMA_DIR}"
+    else
+        echo "[*] zstd binary not available — decompressing via Python (zstandard) instead..."
+        python3 -m pip install --user --quiet zstandard
+        python3 - "${OLLAMA_ARCHIVE}" "${OLLAMA_DIR}" <<'PYEOF'
+import sys, tarfile, zstandard
+archive_path, dest_dir = sys.argv[1], sys.argv[2]
+dctx = zstandard.ZstdDecompressor()
+with open(archive_path, "rb") as fh, dctx.stream_reader(fh) as reader:
+    with tarfile.open(fileobj=reader, mode="r|") as tar:
+        tar.extractall(path=dest_dir)
+PYEOF
+    fi
     rm -f "${OLLAMA_ARCHIVE}"
     if [ ! -f "${OLLAMA_BIN}" ]; then
         echo "[ERROR] Extraction did not produce ${OLLAMA_BIN}. Archive layout may have changed."
