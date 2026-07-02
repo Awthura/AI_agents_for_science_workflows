@@ -92,3 +92,19 @@
 | May 7, 2026 - May 7, 2026                                                                                                    | London | Mar 22, 2026 |
 | [Learning & Optimization 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=191020&copyownerid=66551)            | ASCE EMI Minisymposium on Probabilistic Learning, Stochastic Optimization, and Digital Twins |     |     |
 | Jun 2, 2026 - Jun 5, 2026                                                                                                    | Boulder, Colorado, USA | Jan 15, 2026 |
+
+### Matched Call For Papers for "Robotics"
+
+|     |     |     |     |
+| --- | --- | --- | --- |
+| Event | When | Where | Deadline |
+| [USIC 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200180&copyownerid=199134) | The 2nd Asia Conference on Unmanned Systems and Intelligent Control |     |     |
+| Sep 12, 2026 - Sep 14, 2026 | Singapore | Jul 16, 2026 (Jul 30, 2026) |
+| [SPIE ICMV 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194143&copyownerid=13881) | SPIE--2026 19th International Conference on Machine Vision (ICMV 2026) |     |     |
+| Oct 15, 2026 - Oct 18, 2026 | Budapest, Hungary | Jul 20, 2026 |
+| [IEEE ICAAI 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194397&copyownerid=13881) | IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026) |     |     |
+| Sep 21, 2026 - Sep 24, 2026 | London, UK | Jul 15, 2026 |
+| [CGASP 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=191787&copyownerid=46167) | 4th International Conference on Computer Graphics, Animation & Signal Processing |     |     |
+| Aug 27, 2026 - Aug 28, 2026 | Virtual Conference | Jun 29, 2026 |
+| [Agricultural Robotics 2026](http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194768&copyownerid=198110) | Agricultural Robotics Conference |     |     |
+| Aug 10, 2026 - Aug 14, 2026 | BMO Centre, Calgary, Alberta, Canada | Jun 15, 2026 |
