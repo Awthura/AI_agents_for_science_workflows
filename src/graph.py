@@ -120,18 +120,25 @@ def scrape_node(state: PipelineState) -> dict[str, Any]:
         ttl_days=state.get("cache_ttl_days", 7),
     )
     if not conferences:
+        print(f"  [*] Live scraping returned nothing — falling back to {CCF_DEADLINES_PATH}...")
         conferences = _load_ccf_deadlines_fallback()
+        print(f"  [*] Loaded {len(conferences)} conference(s) from CCF-Deadlines fallback.")
     return {"raw_conferences": _to_dicts(conferences)}
 
 
 def decide_node(state: PipelineState) -> dict[str, Any]:
     conferences = _from_dicts(state["raw_conferences"])
+    print(f"  [*] Decision agent evaluating {len(conferences)} conference(s)...")
     accepted, rejected, _timing = run_decision_agent(
         conferences=conferences,
         user_prefs=_prefs(state),
         model=state["model_name"],
         ollama_base_url=state["ollama_base_url"],
     )
+    print(f"  [*] Decision agent: {len(accepted)} accepted, {len(rejected)} rejected.")
+    for conf in rejected[:5]:
+        reason = conf.decision.reason if conf.decision else "no reason recorded"
+        print(f"      rejected: {conf.name!r} — {reason}")
     return {
         "accepted_conferences": _to_dicts(accepted),
         "rejected_conferences": _to_dicts(rejected),
