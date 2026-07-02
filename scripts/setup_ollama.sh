@@ -109,7 +109,7 @@ echo "[*] Starting temporary Ollama server to pull models..."
 export OLLAMA_MODELS="${OLLAMA_MODELS}"
 
 # Start server in background for pulling
-"${OLLAMA_BIN}" serve &> /tmp/ollama_setup.log &
+"${OLLAMA_BIN}" serve &> /tmp/ollama_setup_${LOGNAME}.log &
 OLLAMA_PID=$!
 
 # Wait for server to be ready
@@ -120,7 +120,7 @@ for i in $(seq 1 30); do
         break
     fi
     if [ "$i" -eq 30 ]; then
-        echo "[ERROR] Ollama server did not start in time. Check /tmp/ollama_setup.log"
+        echo "[ERROR] Ollama server did not start in time. Check /tmp/ollama_setup_${LOGNAME}.log"
         kill "${OLLAMA_PID}" 2>/dev/null
         exit 1
     fi
