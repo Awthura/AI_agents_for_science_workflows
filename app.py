@@ -277,5 +277,9 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=7860,
         show_error=True,
-        root_path="/aafsw",
+        # Absolute URL, not just a path: the reverse proxy (Apache on jhub.cs.ovgu.de)
+        # terminates TLS and forwards plain HTTP internally, so Gradio can't infer
+        # the public scheme/host from X-Forwarded-* headers unless Apache is configured
+        # to send them (out of our control) — an absolute root_path sidesteps that.
+        root_path="https://jhub.cs.ovgu.de/aafsw",
     )
