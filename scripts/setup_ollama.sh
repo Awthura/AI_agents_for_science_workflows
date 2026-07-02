@@ -8,7 +8,7 @@ set -e
 OLLAMA_DIR="/project/${LOGNAME}/ollama"
 OLLAMA_BIN="${OLLAMA_DIR}/bin/ollama"
 OLLAMA_MODELS="${OLLAMA_DIR}/models"
-OLLAMA_DOWNLOAD_URL="https://ollama.com/download/ollama-linux-amd64"
+OLLAMA_DOWNLOAD_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64"
 
 # Models to pull by default
 DEFAULT_MODELS=("llama3.2" "gemma2:9b")
@@ -64,6 +64,11 @@ fi
 if [ ! -f "${OLLAMA_BIN}" ]; then
     echo "[*] Ollama binary not found. Downloading..."
     curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_BIN}"
+    if ! file "${OLLAMA_BIN}" | grep -q "ELF"; then
+        echo "[ERROR] Download did not produce a valid binary (got: $(cat "${OLLAMA_BIN}")). Check OLLAMA_DOWNLOAD_URL."
+        rm -f "${OLLAMA_BIN}"
+        exit 1
+    fi
     chmod +x "${OLLAMA_BIN}"
     echo "[✓] Ollama binary downloaded and made executable."
 else
