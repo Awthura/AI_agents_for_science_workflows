@@ -59,7 +59,7 @@ def scrape_node(state: PipelineState) -> dict[str, Any]:
 
 def decide_node(state: PipelineState) -> dict[str, Any]:
     conferences = _from_dicts(state["raw_conferences"])
-    accepted, rejected = run_decision_agent(
+    accepted, rejected, _timing = run_decision_agent(
         conferences=conferences,
         user_prefs=_prefs(state),
         model=state["model_name"],
@@ -73,7 +73,7 @@ def decide_node(state: PipelineState) -> dict[str, Any]:
 
 def score_node(state: PipelineState) -> dict[str, Any]:
     conferences = _from_dicts(state["accepted_conferences"])
-    scored = run_scorer(
+    scored, _timing = run_scorer(
         conferences=conferences,
         user_prefs=_prefs(state),
         model=state["model_name"],
