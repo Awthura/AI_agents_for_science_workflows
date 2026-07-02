@@ -273,13 +273,20 @@ Enter your details below and click **Run** to get a personalised list of upcomin
     )
 
 if __name__ == "__main__":
-    demo.queue().launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        show_error=True,
-        # Absolute URL, not just a path: the reverse proxy (Apache on jhub.cs.ovgu.de)
-        # terminates TLS and forwards plain HTTP internally, so Gradio can't infer
-        # the public scheme/host from X-Forwarded-* headers unless Apache is configured
-        # to send them (out of our control) — an absolute root_path sidesteps that.
+    import uvicorn
+    from fastapi import FastAPI
+
+    # Apache forwards the full "/aafsw/..." path unchanged rather than stripping
+    # the prefix before proxying (confirmed via direct netcat test to the
+    # backend). Gradio's `root_path` alone only affects generated URLs — it
+    # doesn't register routes — so the app must actually be mounted at that
+    # path for incoming requests to match.
+    fastapi_app = FastAPI()
+    gr.mount_gradio_app(
+        fastapi_app,
+        demo.queue(),
+        path="/aafsw",
         root_path="https://jhub.cs.ovgu.de/aafsw",
+        show_error=True,
     )
+    uvicorn.run(fastapi_app, host="0.0.0.0", port=7860)
