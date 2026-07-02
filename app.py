@@ -304,5 +304,11 @@ if __name__ == "__main__":
     @fastapi_app.middleware("http")
     async def _force_https_scheme(request, call_next):
         request.scope["scheme"] = "https"
-        return await call_next(request)
+        response = await call_next(request)
+        # Apache's proxy appears to cache responses for up to 30 days by path
+        # alone (ignoring query strings) — explicitly forbid caching so a
+        # stale snapshot (e.g. captured mid-deploy with wrong config) can't
+        # get served indefinitely regardless of what we ship afterward.
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        return response
     uvicorn.run(fastapi_app, host="0.0.0.0", port=7860)
