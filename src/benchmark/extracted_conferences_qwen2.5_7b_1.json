@@ -1,8 +1,8 @@
 {
     "conferences": [
         {
-            "name": "SPIE--2026 19th International Conference on Machine Vision",
-            "acronym": "ICMV",
+            "name": "ICMV 2026",
+            "acronym": "",
             "start_date": "2026-10-15",
             "end_date": "2026-10-18",
             "city": "Budapest",
@@ -10,14 +10,13 @@
             "submission_deadline": "2026-07-20",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194144&copyownerid=13881",
             "topics": [
-                "machine learning",
-                "deep learning",
-                "computer vision"
+                "Machine Vision",
+                "Deep Learning"
             ]
         },
         {
-            "name": "IEEE--2026 10th International Conference on Advances in Artificial Intelligence",
-            "acronym": "ICAAI",
+            "name": "ICAAI 2026",
+            "acronym": "",
             "start_date": "2026-09-21",
             "end_date": "2026-09-24",
             "city": "London",
@@ -25,39 +24,41 @@
             "submission_deadline": "2026-07-15",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194398&copyownerid=13881",
             "topics": [
-                "artificial intelligence"
+                "Artificial Intelligence",
+                "Deep Learning"
             ]
         },
         {
-            "name": "2026 7th International Conference on Computers and Artificial Intelligence Technology",
-            "acronym": "CAIT",
+            "name": "CAIT 2026",
+            "acronym": "",
             "start_date": "2026-11-13",
             "end_date": "2026-11-15",
             "city": "Guiyang",
-            "country": "China",
+            "country": "Guizhou, China",
             "submission_deadline": "2026-07-20",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194522&copyownerid=13881",
             "topics": [
-                "computers and artificial intelligence"
+                "Computers",
+                "Artificial Intelligence"
             ]
         },
         {
-            "name": "CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving",
-            "acronym": "VPAD",
+            "name": "VPAD 2026",
+            "acronym": "",
             "start_date": "2026-09-18",
             "end_date": "2026-09-20",
             "city": "Jiangxi Normal University",
             "country": "",
-            "submission_deadline": "2026-07-24",
+            "submission_deadline": "2026-07-24 (2026-08-28)",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200183&copyownerid=198704",
             "topics": [
-                "computer vision",
-                "autonomous driving"
+                "Vision Perception",
+                "Autonomous Driving"
             ]
         },
         {
-            "name": "2026 The 7th International Conference on Education and Artificial Intelligence Technologies",
-            "acronym": "EAIT",
+            "name": "EAIT 2026",
+            "acronym": "",
             "start_date": "2026-09-21",
             "end_date": "2026-09-24",
             "city": "London",
@@ -65,13 +66,13 @@
             "submission_deadline": "2026-07-15",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194394&copyownerid=13881",
             "topics": [
-                "education",
-                "artificial intelligence"
+                "Education",
+                "Artificial Intelligence"
             ]
         },
         {
-            "name": "2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science",
-            "acronym": "ACM-AAMLDS",
+            "name": "ACM-AAMLDS 2026",
+            "acronym": "",
             "start_date": "2026-12-04",
             "end_date": "2026-12-06",
             "city": "Xiamen",
@@ -79,14 +80,13 @@
             "submission_deadline": "2026-11-10",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200077&copyownerid=163993",
             "topics": [
-                "advanced algorithms",
-                "machine learning",
-                "data science"
+                "Advanced Algorithms",
+                "Machine Learning"
             ]
         },
         {
-            "name": "ACM--2026 5th International Conference on Artificial Intelligence and Software Engineering",
-            "acronym": "ICAISE",
+            "name": "ICAISE 2026",
+            "acronym": "",
             "start_date": "2026-08-21",
             "end_date": "2026-08-23",
             "city": "Tokyo",
@@ -94,26 +94,27 @@
             "submission_deadline": "2026-07-10",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=190972&copyownerid=13881",
             "topics": [
-                "artificial intelligence",
-                "software engineering"
+                "Artificial Intelligence",
+                "Software Engineering"
             ]
         },
         {
-            "name": "Advanced Medical Sciences: An International Journal",
+            "name": "CAIT--EI 2026",
             "acronym": "",
-            "start_date": "",
-            "end_date": "",
-            "city": "",
-            "country": "",
-            "submission_deadline": "2026-06-30",
-            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=195388&copyownerid=33993",
+            "start_date": "2026-11-13",
+            "end_date": "2026-11-15",
+            "city": "Guiyang",
+            "country": "Guizhou, China",
+            "submission_deadline": "2026-07-20",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194523&copyownerid=13881",
             "topics": [
-                "medical science"
+                "Computers",
+                "Artificial Intelligence"
             ]
         },
         {
-            "name": "15th International Conference on Natural Language Processing",
-            "acronym": "NLP",
+            "name": "NLP 2026",
+            "acronym": "",
             "start_date": "2026-08-22",
             "end_date": "2026-08-23",
             "city": "Dubai",
@@ -121,7 +122,35 @@
             "submission_deadline": "2026-06-27",
             "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=189376&copyownerid=170233",
             "topics": [
-                "natural language processing"
+                "Natural Language Processing"
+            ]
+        },
+        {
+            "name": "Behaviour, Learning & the Economy 2026",
+            "acronym": "",
+            "start_date": "2026-05-07",
+            "end_date": "2026-05-07",
+            "city": "London",
+            "country": "",
+            "submission_deadline": "2026-03-22",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=192749&copyownerid=197528",
+            "topics": [
+                "Behaviour",
+                "Learning"
+            ]
+        },
+        {
+            "name": "Learning & Optimization 2026",
+            "acronym": "",
+            "start_date": "",
+            "end_date": "",
+            "city": "",
+            "country": "",
+            "submission_deadline": "2026-05-31",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=191020&copyownerid=66551",
+            "topics": [
+                "Learning",
+                "Optimization"
             ]
         }
     ]
