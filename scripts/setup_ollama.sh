@@ -66,8 +66,9 @@ if [ ! -f "${OLLAMA_BIN}" ]; then
     echo "[*] Ollama binary not found. Downloading..."
     OLLAMA_ARCHIVE="${TMPDIR:-/var/tmp}/ollama-linux-amd64.tar.zst"
     curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_ARCHIVE}"
-    if ! file "${OLLAMA_ARCHIVE}" | grep -qi "zstd"; then
-        echo "[ERROR] Download did not produce a valid archive (got: $(head -c 200 "${OLLAMA_ARCHIVE}")). Check OLLAMA_DOWNLOAD_URL."
+    ARCHIVE_SIZE=$(stat -c%s "${OLLAMA_ARCHIVE}" 2>/dev/null || echo 0)
+    if [ "${ARCHIVE_SIZE}" -lt 10000000 ]; then
+        echo "[ERROR] Download too small (${ARCHIVE_SIZE} bytes, expected >1GB) — got: $(head -c 200 "${OLLAMA_ARCHIVE}")"
         rm -f "${OLLAMA_ARCHIVE}"
         exit 1
     fi
