@@ -8,7 +8,7 @@ set -e
 OLLAMA_DIR="/project/${LOGNAME}/ollama"
 OLLAMA_BIN="${OLLAMA_DIR}/bin/ollama"
 OLLAMA_MODELS="${OLLAMA_DIR}/models"
-OLLAMA_DOWNLOAD_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64"
+OLLAMA_DOWNLOAD_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
 
 # Models to pull by default
 DEFAULT_MODELS=("llama3.2" "gemma2:9b")
@@ -61,12 +61,21 @@ if [ ! -d "$(dirname "${OLLAMA_BIN}")" ]; then
 fi
 
 # ── 3. Download Ollama binary ────────────────────────────────────────────────
+# Ollama ships as a .tar.zst archive containing bin/ and lib/, not a standalone binary.
 if [ ! -f "${OLLAMA_BIN}" ]; then
     echo "[*] Ollama binary not found. Downloading..."
-    curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_BIN}"
-    if ! file "${OLLAMA_BIN}" | grep -q "ELF"; then
-        echo "[ERROR] Download did not produce a valid binary (got: $(cat "${OLLAMA_BIN}")). Check OLLAMA_DOWNLOAD_URL."
-        rm -f "${OLLAMA_BIN}"
+    OLLAMA_ARCHIVE="${TMPDIR:-/var/tmp}/ollama-linux-amd64.tar.zst"
+    curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_ARCHIVE}"
+    if ! file "${OLLAMA_ARCHIVE}" | grep -qi "zstd"; then
+        echo "[ERROR] Download did not produce a valid archive (got: $(head -c 200 "${OLLAMA_ARCHIVE}")). Check OLLAMA_DOWNLOAD_URL."
+        rm -f "${OLLAMA_ARCHIVE}"
+        exit 1
+    fi
+    echo "[*] Extracting to ${OLLAMA_DIR}..."
+    tar --zstd -xf "${OLLAMA_ARCHIVE}" -C "${OLLAMA_DIR}"
+    rm -f "${OLLAMA_ARCHIVE}"
+    if [ ! -f "${OLLAMA_BIN}" ]; then
+        echo "[ERROR] Extraction did not produce ${OLLAMA_BIN}. Archive layout may have changed."
         exit 1
     fi
     chmod +x "${OLLAMA_BIN}"
