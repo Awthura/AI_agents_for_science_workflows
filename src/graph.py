@@ -9,7 +9,10 @@ live in state so they can be swapped per run (supports RQ1/RQ2).
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -18,7 +21,15 @@ from langgraph.graph import END, StateGraph
 from agents.decision import run_decision_agent
 from agents.scorer import run_scorer
 from agents.scraper import run_scraper
-from schemas.conference import Conference, UserPreferences
+from schemas.conference import (
+    Conference,
+    ConferenceDates,
+    ConferenceLocation,
+    CoreRank,
+    UserPreferences,
+)
+
+CCF_DEADLINES_PATH = Path(__file__).parent.parent / "future_conferences.json"
 
 
 class PipelineState(TypedDict):
@@ -46,6 +57,60 @@ def _from_dicts(raw: list[dict]) -> list[Conference]:
     return [Conference.model_validate(r) for r in raw]
 
 
+def _parse_iso_date(raw: str) -> date | None:
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def _load_ccf_deadlines_fallback(path: Path = CCF_DEADLINES_PATH) -> list[Conference]:
+    """Fallback data source for when live scraping is unavailable (e.g. no
+    Firecrawl on the cluster): load conferences pre-fetched from CCF-Deadlines
+    via scripts/fetcher/ccf-deadlines_fetcher.py + agents/ccfddl_conferences.py.
+    """
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+
+    conferences = []
+    for entry in data.get("conferences", []):
+        start = _parse_iso_date(entry.get("start_date", ""))
+        if start is None:
+            continue  # dates.start is required; skip entries we can't parse
+
+        name = entry.get("name") or entry.get("acronym") or "Unknown"
+        core_rank_raw = (entry.get("core_rank") or "").strip().upper()
+        try:
+            core_rank = CoreRank(core_rank_raw) if core_rank_raw else None
+        except ValueError:
+            core_rank = None
+
+        conferences.append(Conference(
+            id=hashlib.md5(f"{name.lower().strip()}{start.year}".encode()).hexdigest()[:12],
+            name=name,
+            acronym=entry.get("acronym") or None,
+            year=start.year,
+            url=entry.get("url") or None,
+            source_url="ccf-deadlines",
+            scraped_at=datetime.now(timezone.utc),
+            dates=ConferenceDates(
+                start=start,
+                submission_deadline=_parse_iso_date(entry.get("submission_deadline", "")),
+            ),
+            location=ConferenceLocation(
+                city=entry.get("city") or "Unknown",
+                country=entry.get("country") or "",
+            ),
+            topics=entry.get("topics", []),
+            core_rank=core_rank,
+        ))
+    return conferences
+
+
 def scrape_node(state: PipelineState) -> dict[str, Any]:
     conferences = run_scraper(
         queries=state["scrape_queries"],
@@ -54,6 +119,8 @@ def scrape_node(state: PipelineState) -> dict[str, Any]:
         cache_path=Path(state["cache_path"]),
         ttl_days=state.get("cache_ttl_days", 7),
     )
+    if not conferences:
+        conferences = _load_ccf_deadlines_fallback()
     return {"raw_conferences": _to_dicts(conferences)}
 
 
