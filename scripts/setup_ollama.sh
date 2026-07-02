@@ -55,6 +55,11 @@ else
     echo "[✓] ${OLLAMA_MODELS} already exists."
 fi
 
+if [ ! -d "$(dirname "${OLLAMA_BIN}")" ]; then
+    echo "[*] Creating $(dirname "${OLLAMA_BIN}")..."
+    mkdir -p "$(dirname "${OLLAMA_BIN}")"
+fi
+
 # ── 3. Download Ollama binary ────────────────────────────────────────────────
 if [ ! -f "${OLLAMA_BIN}" ]; then
     echo "[*] Ollama binary not found. Downloading..."
