@@ -234,6 +234,9 @@ future_conferences.json
 pipeline_results.json
 conference/
 
+# Downloaded binaries (ollama, cloudflared) — not tracked, fetched by setup scripts
+bin/
+
 # API keys and local secrets
 .env.local
 secrets.json
