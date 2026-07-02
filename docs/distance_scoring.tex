@@ -1,0 +1,79 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{parskip}
+
+\title{\textbf{Distance Scoring — Mathematical Formulation}}
+\author{AI Agents for Scientific Workflows}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\section*{Overview}
+
+Each conference is scored on three axes; the distance score contributes 30\% to the
+weighted total:
+
+\begin{equation}
+    s_{\text{total}} = 0.50 \cdot s_{\text{rel}} + 0.30 \cdot s_{\text{dist}} + 0.20 \cdot s_{\text{pres}}
+\end{equation}
+
+\section*{Step 1 — Haversine Distance}
+
+Given the researcher's location $(\phi_1, \lambda_1)$ and the conference location
+$(\phi_2, \lambda_2)$ in decimal degrees, the great-circle distance $d$ is:
+
+\begin{equation}
+    a = \sin^2\!\left(\frac{\phi_2 - \phi_1}{2}\right)
+        + \cos\phi_1 \cdot \cos\phi_2 \cdot
+          \sin^2\!\left(\frac{\lambda_2 - \lambda_1}{2}\right)
+\end{equation}
+
+\begin{equation}
+    d = 2R \cdot \arcsin\!\left(\sqrt{a}\right), \qquad R = 6371\ \text{km}
+\end{equation}
+
+where $\phi$ denotes latitude, $\lambda$ denotes longitude, and $R$ is the mean
+Earth radius.
+
+\section*{Step 2 — Distance to Score}
+
+The raw distance $d$ is converted to a score $s_{\text{dist}} \in [0, 100]$ via
+exponential decay:
+
+\begin{equation}
+    s_{\text{dist}}(d) = 100 \cdot \exp\!\left(-\frac{3d}{d_{\max}}\right),
+    \qquad d_{\max} = 15{,}000\ \text{km}
+\end{equation}
+
+\noindent Key reference values:
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+$d$ (km) & Example & $s_{\text{dist}}$ \\
+\hline
+0       & Same city          & 100.0 \\
+500     & Berlin             &  90.5 \\
+1\,906  & Athens             &  68.3 \\
+5\,000  & New York           &  36.8 \\
+9\,200  & Osaka              &  16.3 \\
+15\,000 & Antipode           &   5.0 \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent If geocoding fails for either location, $s_{\text{dist}}$ defaults to $50.0$
+(neutral mid-range value).
+
+\section*{Design Rationale}
+
+Exponential decay reflects how researchers perceive travel: the difference between
+a local (0 km) and a national (500 km) conference is significant, while the
+difference between a long-haul (8\,000 km) and a very long-haul (10\,000 km)
+conference is marginal. A linear scale would unfairly penalise all overseas venues.
+
+\end{document}
