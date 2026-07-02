@@ -11,9 +11,9 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
-from .graph import build_graph, make_initial_state
-from .schemas.conference import Conference, UserPreferences
-from .tools.geocoding import geocode
+from graph import build_graph, make_initial_state
+from schemas.conference import Conference, UserPreferences
+from tools.geocoding import geocode
 
 load_dotenv()
 console = Console()

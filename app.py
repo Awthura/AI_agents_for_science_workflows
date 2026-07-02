@@ -24,19 +24,21 @@ DEMO_MODE = "--demo" in sys.argv
 
 load_dotenv()
 
-# Allow both package-style imports (src.graph) and flat imports used inside agents
-_ROOT = Path(__file__).parent
-_SRC = _ROOT / "src"
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+# src/ modules use flat imports internally (e.g. `from schemas.conference import
+# ...`), not package-relative ones, so src/ itself — not its parent — must be on
+# sys.path. Importing via `src.xxx` here as well would load a second, distinct
+# copy of each module (e.g. two different `Coordinates` classes with the same
+# name), which fails Pydantic's isinstance-based validation despite looking
+# identical.
+_SRC = Path(__file__).parent / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 if not DEMO_MODE:
-    from src.graph import build_graph, make_initial_state  # noqa: E402
-    from src.main import build_queries  # noqa: E402
-    from src.schemas.conference import Conference, UserPreferences  # noqa: E402
-    from src.tools.geocoding import geocode  # noqa: E402
+    from graph import build_graph, make_initial_state  # noqa: E402
+    from main import build_queries  # noqa: E402
+    from schemas.conference import Conference, UserPreferences  # noqa: E402
+    from tools.geocoding import geocode  # noqa: E402
 
 AVAILABLE_MODELS = ["llama3.2", "gemma2:9b"]
 DEFAULT_OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")

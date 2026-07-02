@@ -15,10 +15,10 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, StateGraph
 
-from .agents.decision import run_decision_agent
-from .agents.scorer import run_scorer
-from .agents.scraper import run_scraper
-from .schemas.conference import Conference, UserPreferences
+from agents.decision import run_decision_agent
+from agents.scorer import run_scorer
+from agents.scraper import run_scraper
+from schemas.conference import Conference, UserPreferences
 
 
 class PipelineState(TypedDict):

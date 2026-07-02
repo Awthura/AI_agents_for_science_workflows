@@ -147,7 +147,7 @@ Runs all profiles defined in `TEST_PROFILES` against all models in `TEST_MODELS`
 ### Run interactive CLI
 
 ```bash
-python -m src.main
+python src/main.py
 ```
 
 Prompts for location and research topic, then runs the full pipeline and prints a ranked table.
