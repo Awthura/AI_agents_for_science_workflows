@@ -10,9 +10,9 @@ def run_pipeline():
     base_url = "http://localhost:11434"
     md_filepath = "www.wikicfp.com_cfp_servlet_tool.search_q_Deep+Learning_year_2026_page_1.md"
     groundtruth_filepath = "groundtruth_deep_learning.json"
-    results_md_filepath = "evaluation_results.md"
+    results_md_filepath = "evaluation_results_1.md"
 
-    models_to_test = ["llama3.2", "llama3", "gemma4:e4b"]
+    models_to_test = ["llama3.2", "llama3", "gemma4:e4b", "qwen2.5:7b", "mistral:7b"]
 
     # 2. Dateien einmalig einlesen (spart Zeit bei mehreren Modellen)
     if not os.path.exists(md_filepath) or not os.path.exists(groundtruth_filepath):
