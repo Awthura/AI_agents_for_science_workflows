@@ -281,12 +281,28 @@ if __name__ == "__main__":
     # backend). Gradio's `root_path` alone only affects generated URLs — it
     # doesn't register routes — so the app must actually be mounted at that
     # path for incoming requests to match.
+    #
+    # root_path must be the relative path ("/aafsw"), not an absolute URL:
+    # passing an absolute URL here breaks route matching entirely (every
+    # request 404s), since it's compared against incoming request paths,
+    # which never include a scheme/host. Verified via local repro against
+    # this exact Gradio version (6.19.0).
     fastapi_app = FastAPI()
     gr.mount_gradio_app(
         fastapi_app,
         demo.queue(),
         path="/aafsw",
-        root_path="https://jhub.cs.ovgu.de/aafsw",
+        root_path="/aafsw",
         show_error=True,
     )
+
+    # Apache doesn't send X-Forwarded-Proto, so Gradio infers "http" (the
+    # scheme of the plain-HTTP connection Apache forwards internally) and
+    # generates mixed-content asset/websocket URLs that browsers block on
+    # this HTTPS-only deployment. Force the scheme since it's always HTTPS
+    # externally on this proxy.
+    @fastapi_app.middleware("http")
+    async def _force_https_scheme(request, call_next):
+        request.scope["scheme"] = "https"
+        return await call_next(request)
     uvicorn.run(fastapi_app, host="0.0.0.0", port=7860)
