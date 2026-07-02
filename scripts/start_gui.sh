@@ -7,7 +7,7 @@ set -e
 
 SCREEN_SESSION="gradio-gui"
 GUI_PORT=7860
-GUI_PATH="/aafsw/"
+GUI_PATH="/"
 PROJECT_DIR="/project/${LOGNAME}/AI_agents_for_science_workflows"
 
 echo "======================================================"
@@ -28,7 +28,8 @@ fi
 if curl -sf --noproxy localhost http://localhost:${GUI_PORT}${GUI_PATH} > /dev/null 2>&1; then
     echo "[✓] GUI is already running on port ${GUI_PORT}."
     echo ""
-    echo "    Access via: https://jhub.cs.ovgu.de${GUI_PATH}"
+    echo "    Access via SSH tunnel: ssh -N -L ${GUI_PORT}:$(hostname):${GUI_PORT} \${YOUR_ACCOUNT}@fcm.cs.ovgu.de"
+    echo "    then open http://localhost:${GUI_PORT}"
     echo "    Reattach screen session:  screen -r ${SCREEN_SESSION}"
     exit 0
 fi
@@ -86,7 +87,8 @@ echo ""
 echo "======================================================"
 echo " GUI is ready."
 echo ""
-echo " Access via: https://jhub.cs.ovgu.de${GUI_PATH}"
+echo " Access via SSH tunnel: ssh -N -L ${GUI_PORT}:$(hostname):${GUI_PORT} \${YOUR_ACCOUNT}@fcm.cs.ovgu.de"
+echo " then open http://localhost:${GUI_PORT}"
 echo ""
 echo " Reattach session : screen -r ${SCREEN_SESSION}"
 echo " View logs        : cat /tmp/gradio.log"
