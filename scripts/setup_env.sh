@@ -70,7 +70,7 @@ echo "[*] Verifying key imports..."
 python -c "import langgraph; print('  [✓] langgraph')"
 python -c "import langchain_ollama; print('  [✓] langchain_ollama')"
 python -c "import pydantic; print('  [✓] pydantic', pydantic.__version__)"
-python -c "import rich; print('  [✓] rich', rich.__version__)"
+python -c "import rich, importlib.metadata; print('  [✓] rich', importlib.metadata.version('rich'))"
 
 # ── 9. Create .env if missing ────────────────────────────────────────────────
 if [ ! -f "${REPO_DIR}/.env" ]; then
