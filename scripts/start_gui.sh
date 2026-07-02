@@ -46,6 +46,15 @@ export NO_PROXY='localhost,127.0.0.1'
 export TMPDIR=/var/tmp
 
 # ── 5. Start Gradio in a screen session ──────────────────────────────────────
+# Use the venv's python explicitly — screen -dmS spawns a fresh shell that
+# does NOT inherit venv activation from the calling shell, even if you
+# `source venv/bin/activate`d before running this script.
+VENV_PYTHON="${PROJECT_DIR}/venv/bin/python"
+if [ ! -x "${VENV_PYTHON}" ]; then
+    echo "[ERROR] ${VENV_PYTHON} not found. Run scripts/setup_env.sh first."
+    exit 1
+fi
+
 echo "[*] Starting Gradio GUI in screen session '${SCREEN_SESSION}'..."
 screen -dmS "${SCREEN_SESSION}" bash -c \
     "cd ${PROJECT_DIR} && \
@@ -54,7 +63,7 @@ screen -dmS "${SCREEN_SESSION}" bash -c \
      export NO_PROXY='localhost,127.0.0.1'; \
      export TMPDIR=/var/tmp; \
      export OLLAMA_BASE_URL='http://localhost:11434'; \
-     python app.py 2>&1 | tee /tmp/gradio.log"
+     ${VENV_PYTHON} app.py 2>&1 | tee /tmp/gradio.log"
 
 # ── 6. Wait for GUI to be ready ──────────────────────────────────────────────
 echo "[*] Waiting for GUI to become ready..."
