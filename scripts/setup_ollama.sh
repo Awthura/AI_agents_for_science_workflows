@@ -77,7 +77,7 @@ if [ ! -f "${OLLAMA_BIN}" ]; then
         tar --zstd -xf "${OLLAMA_ARCHIVE}" -C "${OLLAMA_DIR}"
     else
         echo "[*] zstd binary not available — decompressing via Python (zstandard) instead..."
-        python3 -m pip install --user --quiet zstandard
+        python3 -m pip install --user --break-system-packages --quiet zstandard
         python3 - "${OLLAMA_ARCHIVE}" "${OLLAMA_DIR}" <<'PYEOF'
 import sys, tarfile, zstandard
 archive_path, dest_dir = sys.argv[1], sys.argv[2]
