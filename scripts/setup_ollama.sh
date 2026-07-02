@@ -8,7 +8,7 @@ set -e
 OLLAMA_DIR="/project/${LOGNAME}/ollama"
 OLLAMA_BIN="${OLLAMA_DIR}/bin/ollama"
 OLLAMA_MODELS="${OLLAMA_DIR}/models"
-OLLAMA_DOWNLOAD_URL="https://ollama.com/download/ollama-linux-amd64"
+OLLAMA_DOWNLOAD_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
 
 # Models to pull by default
 DEFAULT_MODELS=("llama3.2" "gemma2:9b")
@@ -55,10 +55,43 @@ else
     echo "[✓] ${OLLAMA_MODELS} already exists."
 fi
 
+if [ ! -d "$(dirname "${OLLAMA_BIN}")" ]; then
+    echo "[*] Creating $(dirname "${OLLAMA_BIN}")..."
+    mkdir -p "$(dirname "${OLLAMA_BIN}")"
+fi
+
 # ── 3. Download Ollama binary ────────────────────────────────────────────────
+# Ollama ships as a .tar.zst archive containing bin/ and lib/, not a standalone binary.
 if [ ! -f "${OLLAMA_BIN}" ]; then
     echo "[*] Ollama binary not found. Downloading..."
-    curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_BIN}"
+    OLLAMA_ARCHIVE="${TMPDIR:-/var/tmp}/ollama-linux-amd64.tar.zst"
+    curl -L "${OLLAMA_DOWNLOAD_URL}" -o "${OLLAMA_ARCHIVE}"
+    ARCHIVE_SIZE=$(stat -c%s "${OLLAMA_ARCHIVE}" 2>/dev/null || echo 0)
+    if [ "${ARCHIVE_SIZE}" -lt 10000000 ]; then
+        echo "[ERROR] Download too small (${ARCHIVE_SIZE} bytes, expected >1GB) — got: $(head -c 200 "${OLLAMA_ARCHIVE}")"
+        rm -f "${OLLAMA_ARCHIVE}"
+        exit 1
+    fi
+    echo "[*] Extracting to ${OLLAMA_DIR}..."
+    if command -v zstd &>/dev/null; then
+        tar --zstd -xf "${OLLAMA_ARCHIVE}" -C "${OLLAMA_DIR}"
+    else
+        echo "[*] zstd binary not available — decompressing via Python (zstandard) instead..."
+        python3 -m pip install --user --break-system-packages --quiet zstandard
+        python3 - "${OLLAMA_ARCHIVE}" "${OLLAMA_DIR}" <<'PYEOF'
+import sys, tarfile, zstandard
+archive_path, dest_dir = sys.argv[1], sys.argv[2]
+dctx = zstandard.ZstdDecompressor()
+with open(archive_path, "rb") as fh, dctx.stream_reader(fh) as reader:
+    with tarfile.open(fileobj=reader, mode="r|") as tar:
+        tar.extractall(path=dest_dir)
+PYEOF
+    fi
+    rm -f "${OLLAMA_ARCHIVE}"
+    if [ ! -f "${OLLAMA_BIN}" ]; then
+        echo "[ERROR] Extraction did not produce ${OLLAMA_BIN}. Archive layout may have changed."
+        exit 1
+    fi
     chmod +x "${OLLAMA_BIN}"
     echo "[✓] Ollama binary downloaded and made executable."
 else
@@ -99,7 +132,7 @@ echo "[*] Starting temporary Ollama server to pull models..."
 export OLLAMA_MODELS="${OLLAMA_MODELS}"
 
 # Start server in background for pulling
-"${OLLAMA_BIN}" serve &> /tmp/ollama_setup.log &
+"${OLLAMA_BIN}" serve &> /tmp/ollama_setup_${LOGNAME}.log &
 OLLAMA_PID=$!
 
 # Wait for server to be ready
@@ -110,7 +143,7 @@ for i in $(seq 1 30); do
         break
     fi
     if [ "$i" -eq 30 ]; then
-        echo "[ERROR] Ollama server did not start in time. Check /tmp/ollama_setup.log"
+        echo "[ERROR] Ollama server did not start in time. Check /tmp/ollama_setup_${LOGNAME}.log"
         kill "${OLLAMA_PID}" 2>/dev/null
         exit 1
     fi
