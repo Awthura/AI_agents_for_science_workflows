@@ -7,6 +7,7 @@ set -e
 
 SCREEN_SESSION="gradio-gui"
 GUI_PORT=7860
+GUI_PATH="/aafsw/"
 PROJECT_DIR="/project/${LOGNAME}/AI_agents_for_science_workflows"
 
 echo "======================================================"
@@ -24,10 +25,10 @@ if [ ! -f "${PROJECT_DIR}/app.py" ]; then
 fi
 
 # ── 2. Check if already running ─────────────────────────────────────────────
-if curl -sf --noproxy localhost http://localhost:${GUI_PORT}/ > /dev/null 2>&1; then
+if curl -sf --noproxy localhost http://localhost:${GUI_PORT}${GUI_PATH} > /dev/null 2>&1; then
     echo "[✓] GUI is already running on port ${GUI_PORT}."
     echo ""
-    echo "    Access from OVGU network: http://$(hostname):${GUI_PORT}"
+    echo "    Access via: https://jhub.cs.ovgu.de${GUI_PATH}"
     echo "    Reattach screen session:  screen -r ${SCREEN_SESSION}"
     exit 0
 fi
@@ -68,7 +69,7 @@ screen -dmS "${SCREEN_SESSION}" bash -c \
 # ── 6. Wait for GUI to be ready ──────────────────────────────────────────────
 echo "[*] Waiting for GUI to become ready..."
 for i in $(seq 1 30); do
-    if curl -sf --noproxy localhost http://localhost:${GUI_PORT}/ > /dev/null 2>&1; then
+    if curl -sf --noproxy localhost http://localhost:${GUI_PORT}${GUI_PATH} > /dev/null 2>&1; then
         echo "[✓] GUI is running."
         break
     fi
@@ -85,7 +86,7 @@ echo ""
 echo "======================================================"
 echo " GUI is ready."
 echo ""
-echo " Access from OVGU network: http://$(hostname):${GUI_PORT}"
+echo " Access via: https://jhub.cs.ovgu.de${GUI_PATH}"
 echo ""
 echo " Reattach session : screen -r ${SCREEN_SESSION}"
 echo " View logs        : cat /tmp/gradio.log"
