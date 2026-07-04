@@ -10,7 +10,7 @@ def run_pipeline():
     base_url = "http://localhost:11434"
     md_filepath = "www.wikicfp.com_cfp_servlet_tool.search_q_Deep+Learning_year_2026_page_1.md"
     groundtruth_filepath = "groundtruth_deep_learning.json"
-    results_md_filepath = "evaluation_results_1.md"
+    results_md_filepath = "benchmark_3_with_score/evaluation_results.md"
 
     models_to_test = ["llama3.2", "llama3", "gemma4:e4b", "qwen2.5:7b", "mistral:7b"]
 
@@ -72,7 +72,13 @@ def run_pipeline():
 
         md_output += "### Genauigkeit (Accuracy)\n"
         md_output += f"- **Exakte Attribut-Matches:** {metrics['accuracy']['exact_matches']} von {metrics['accuracy']['attributes_checked']} geprüften Attributen\n"
+        # .get() wird hier sicherheitshalber genutzt, falls eine ältere evaluate_extraction Version geladen wird
+        md_output += f"- **Vertauschte Identifikatoren (Name/Akronym):** {metrics['accuracy'].get('swapped_ids', 0)}\n"
         md_output += f"- **Halluzinationen (Daten erfunden):** {metrics['accuracy']['hallucinations']}\n\n"
+
+        # Den Overall Score hinzufügen
+        md_output += "### Overall Score\n"
+        md_output += f"- **Gesamtpunktzahl:** **{metrics.get('overall_score', 0.0)} / 100**\n\n"
         md_output += "---\n\n"
 
     # 5. Finale Markdown-Datei speichern

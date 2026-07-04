@@ -1,0 +1,80 @@
+{
+    "conferences": [
+        {
+            "name": "SPIE--2026 19th International Conference on Machine Vision (ICMV 2026)",
+            "acronym": "ICMV",
+            "start_date": "Oct 15, 2026",
+            "end_date": "Oct 18, 2026",
+            "city": "Budapest, Hungary",
+            "country": "Hungary",
+            "submission_deadline": "Jul 20, 2026",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194144&copyownerid=13881",
+            "topics": [
+                "machine learning"
+            ]
+        },
+        {
+            "name": "IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026)",
+            "acronym": "ICAAI",
+            "start_date": "Sep 21, 2026",
+            "end_date": "Sep 24, 2026",
+            "city": "London, UK",
+            "country": "UK",
+            "submission_deadline": "Jul 15, 2026",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194398&copyownerid=13881",
+            "topics": [
+                "artificial intelligence"
+            ]
+        },
+        {
+            "name": "2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026)",
+            "acronym": "CAIT",
+            "start_date": "Nov 13, 2026",
+            "end_date": "Nov 15, 2026",
+            "city": "Guiyang, Guizhou, China",
+            "country": "China",
+            "submission_deadline": "Jul 20, 2026",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=194522&copyownerid=13881",
+            "topics": [
+                "computers and artificial intelligence technology"
+            ]
+        },
+        {
+            "name": "CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving",
+            "acronym": "",
+            "start_date": "Sep 18, 2026",
+            "end_date": "Sep 20, 2026",
+            "city": "Jiangxi Normal University",
+            "country": "",
+            "submission_deadline": "Jul 24, 2026 (Aug 28, 2026)",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200183&copyownerid=198704",
+            "topics": [
+                "3D vision perception for autonomous driving"
+            ]
+        },
+        {
+            "name": "2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026)",
+            "acronym": "EAIT",
+            "start_date": "",
+            "end_date": "",
+            "city": "",
+            "country": "",
+            "submission_deadline": "",
+            "url": "",
+            "topics": []
+        },
+        {
+            "name": "2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science (AAMLDS 2026)",
+            "acronym": "AAMLDS",
+            "start_date": "Dec 4, 2026",
+            "end_date": "Dec 6, 2026",
+            "city": "Xiamen, China",
+            "country": "China",
+            "submission_deadline": "Nov 10, 2026",
+            "url": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=200077&copyownerid=163993",
+            "topics": [
+                "advanced algorithms"
+            ]
+        }
+    ]
+}
