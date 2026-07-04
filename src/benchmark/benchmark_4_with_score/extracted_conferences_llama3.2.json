@@ -1,0 +1,160 @@
+{
+    "conferences": [
+        {
+            "name": "SPIE--2026 19th International Conference on Machine Vision (ICMV 2026)",
+            "acronym": "ICMV",
+            "start_date": "Oct 15, 2026",
+            "end_date": "Oct 18, 2026",
+            "city": "Budapest, Hungary",
+            "country": "Hungary",
+            "submission_deadline": "Jul 20, 2026",
+            "url": "",
+            "topics": [
+                "machine vision"
+            ]
+        },
+        {
+            "name": "IEEE--2026 10th International Conference on Advances in Artificial Intelligence (ICAAI 2026)",
+            "acronym": "ICAAI",
+            "start_date": "Sep 21, 2026",
+            "end_date": "Sep 24, 2026",
+            "city": "London, UK",
+            "country": "UK",
+            "submission_deadline": "Jul 15, 2026",
+            "url": "",
+            "topics": [
+                "artificial intelligence"
+            ]
+        },
+        {
+            "name": "2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026)",
+            "acronym": "CAIT",
+            "start_date": "Nov 13, 2026",
+            "end_date": "Nov 15, 2026",
+            "city": "Guiyang, Guizhou, China",
+            "country": "China",
+            "submission_deadline": "Jul 20, 2026",
+            "url": "",
+            "topics": [
+                "computers and artificial intelligence"
+            ]
+        },
+        {
+            "name": "CVML 2026 Workshop on 3D Vision Perception for Autonomous Driving",
+            "acronym": "VPAD",
+            "start_date": "Sep 18, 2026",
+            "end_date": "Sep 20, 2026",
+            "city": "Jiangxi Normal University",
+            "country": "",
+            "submission_deadline": "Jul 24, 2026 (Aug 28, 2026)",
+            "url": "",
+            "topics": [
+                "3D vision perception"
+            ]
+        },
+        {
+            "name": "2026 The 7th International Conference on Education and Artificial Intelligence Technologies (EAIT 2026)",
+            "acronym": "EAIT",
+            "start_date": "Sep 21, 2026",
+            "end_date": "Sep 24, 2026",
+            "city": "London, UK",
+            "country": "UK",
+            "submission_deadline": "Jul 15, 2026",
+            "url": "",
+            "topics": [
+                "education and artificial intelligence"
+            ]
+        },
+        {
+            "name": "2026 International Conference on Advanced Algorithms, Machine Learning, and Data Science (AAMLDS 2026)",
+            "acronym": "ACM-AAMLDS",
+            "start_date": "Dec 4, 2026",
+            "end_date": "Dec 6, 2026",
+            "city": "Xiamen, China",
+            "country": "China",
+            "submission_deadline": "Nov 10, 2026",
+            "url": "",
+            "topics": [
+                "advanced algorithms"
+            ]
+        },
+        {
+            "name": "ACM--2026 5th International Conference on Artificial Intelligence and Software Engineering (ICAISE 2026)",
+            "acronym": "ICAISE",
+            "start_date": "Aug 21, 2026",
+            "end_date": "Aug 23, 2026",
+            "city": "Tokyo, Japan",
+            "country": "Japan",
+            "submission_deadline": "Jul 10, 2026",
+            "url": "",
+            "topics": [
+                "artificial intelligence and software engineering"
+            ]
+        },
+        {
+            "name": "2026 7th International Conference on Computers and Artificial Intelligence Technology (CAIT 2026)",
+            "acronym": "CAIT--EI",
+            "start_date": "Nov 13, 2026",
+            "end_date": "Nov 15, 2026",
+            "city": "Guiyang, Guizhou, China",
+            "country": "China",
+            "submission_deadline": "Jul 20, 2026",
+            "url": "",
+            "topics": [
+                "computers and artificial intelligence"
+            ]
+        },
+        {
+            "name": "Advanced Medical Sciences: An International Journal",
+            "acronym": "AMS",
+            "start_date": "N/A",
+            "end_date": "N/A",
+            "city": "N/A",
+            "country": "N/A",
+            "submission_deadline": "Jun 30, 2026",
+            "url": "",
+            "topics": [
+                "advanced medical sciences"
+            ]
+        },
+        {
+            "name": "15th International Conference on Natural Language Processing",
+            "acronym": "NLP",
+            "start_date": "Aug 22, 2026",
+            "end_date": "Aug 23, 2026",
+            "city": "Dubai, UAE",
+            "country": "UAE",
+            "submission_deadline": "Jun 27, 2026",
+            "url": "",
+            "topics": [
+                "natural language processing"
+            ]
+        },
+        {
+            "name": "ERUNI ERC London Launch Workshop Behaviour, Learning & the Economy",
+            "acronym": "Behaviour, Learning & the Economy 2026",
+            "start_date": "May 7, 2026",
+            "end_date": "May 7, 2026",
+            "city": "London",
+            "country": "",
+            "submission_deadline": "Mar 22, 2026",
+            "url": "",
+            "topics": [
+                "behaviour, learning & the economy"
+            ]
+        },
+        {
+            "name": "ASCE EMI Minisymposium on Probabilistic Machine Learning for Smart Infrastructure",
+            "acronym": "Learning & Optimization 2026",
+            "start_date": "N/A",
+            "end_date": "N/A",
+            "city": "N/A",
+            "country": "N/A",
+            "submission_deadline": "N/A",
+            "url": "",
+            "topics": [
+                "probabilistic machine learning"
+            ]
+        }
+    ]
+}
