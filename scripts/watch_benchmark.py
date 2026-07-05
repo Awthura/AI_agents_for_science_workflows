@@ -18,7 +18,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-DEFAULT_FILE = Path(__file__).parent.parent / "src/benchmark/decision_scoring_results_selfvalidated.json"
+DEFAULT_FILE = Path(__file__).parent.parent / "src/benchmark/decision_scoring_results_fewshot.json"
 POLL_SECONDS = 5
 
 
