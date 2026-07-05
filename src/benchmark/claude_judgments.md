@@ -174,4 +174,69 @@ slowest model, mean decision-call times of 10-18s vs. gemma's 5-7s, llama's
 
 ## granite4:3b
 
-(pending)
+**Metric 1 (Reliability): 100** — 0/242 parse failures.
+
+**Metric 2 (Decision Accuracy): ~72** — Overall conservative accept pattern
+similar to llama3.2/phi4-mini (many profiles with 0-2 accepted out of
+7-14 pre-filtered). At least one confirmed clear miss: rejects IUI (ACM
+Conference on Intelligent User Interfaces) for the Accessible Interfaces
+profile (idx=12) — a textbook match that gemma4:e4b and qwen3:4b both
+correctly accepted.
+
+**Metric 3 (Reasoning Quality): ~25 (1.25/5)** — Worst of all 5 models by a
+wide margin, and a genuinely different kind of failure than the other four:
+the `reason` text frequently *argues for relevance* while the `relevant`
+field is set to `false` — a direct logical contradiction, confirmed in at
+least 15 of the 20 profiles, often multiple times per profile. Examples:
+idx=0 rejects AAAI with reason "The conference is highly relevant to the
+researcher's work on AI agents for scientific workflows"; idx=12 rejects IUI
+with reason "directly relevant to the researcher's field of designing and
+evaluating accessible user interfaces for assistive technology" (this one
+directly caused the wrong final decision above); idx=13 rejects EACL with
+reason "directly relevant to the researcher's field of study in human-AI
+collaborative interfaces"; idx=18 rejects AAMAS with reason "highly relevant
+as autonomous agents/multiagent systems are central to developing advanced
+AI models used in climate modeling." This isn't occasional noise or
+cross-profile contamination (llama3.2's issue) — it's the reasoning
+routinely contradicting the model's own decision, which directly undermines
+the project's own XAI/explainability goal, since the stated explanation
+frequently doesn't match what was actually decided.
+
+**Metric 4 (Relevancy Calibration): ~72** — For the accepted subset, scores
+look internally reasonable (mostly 85-95), comparable to other models —
+this failure mode is specific to the decision agent's reasoning, not the
+scorer.
+
+**Metric 5 (Discrimination): 100 (scaled)** — mean acceptance rate 0.223,
+stdev 0.201 — highest variance of all 5 models.
+
+**Total: ~74/100** — lowest of the 5 models, driven almost entirely by the
+reasoning-quality collapse rather than the underlying accept/reject pattern,
+which is comparable to the other conservative models.
+
+---
+
+## Final Leaderboard (equal 20% weighting, v1)
+
+| Rank | Model | Reliability | Accuracy | Reasoning | Calibration | Discrimination | **Total** |
+|---|---|---|---|---|---|---|---|
+| 1 | gemma4:e4b | 100 | 85 | 70 | 75 | 100 | **~86** |
+| 2 | qwen3:4b | 100 | 87 | 78 | 65 | 95 | **~85** |
+| 3 | llama3.2 | 100 | 78 | 47 | 70 | 100 | **~79** |
+| 3 | phi4-mini | 100 | 73 | 60 | 75 | 86 | **~79** |
+| 5 | granite4:3b | 100 | 72 | 25 | 72 | 100 | **~74** |
+| — | deepseek-r1:7b | — | — | — | — | — | excluded (98.8% parse failure, needs rerun with `reasoning=False` fix) |
+
+Cross-validates against the team's own extraction benchmark for the 2 models
+in common: gemma4:e4b (73/100) beat llama3.2 (59/100) there too — same
+ranking, different task. qwen3:4b and granite4:3b were not part of the
+original extraction benchmark, so their strong/weak showings here are new
+data points, not confirmations.
+
+Each model has a genuinely distinct failure signature, not just a score
+difference: gemma over-accepts via a prestige halo (defaults to "yes" for
+famous AI venues regardless of fit); llama3.2 hallucinates reasoning content
+from other profiles; phi4-mini under-accepts and fixates on conference
+"validity" logic over topical fit; qwen3:4b reasons best but pattern-matches
+on topic labels and its own scorer contradicts its own decisions; granite4:3b's
+reasoning routinely argues the opposite of its own decision.
