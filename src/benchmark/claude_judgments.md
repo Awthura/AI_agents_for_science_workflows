@@ -131,7 +131,46 @@ phi4-mini has cleaner reasoning but misses more genuine accepts.
 
 ## qwen3:4b
 
-(pending)
+**Metric 1 (Reliability): 100** — 0/242 parse failures.
+
+**Metric 2 (Decision Accuracy): ~87** — Best nuanced-distinction handling of
+the 5 models: correctly separates "adversarial ML security" from generic
+network/crypto security for profile_idx=3 (rejecting CHES/USENIX
+SECURITY/ASIACCS/FC/EUROCRYPT with specific reasoning other models missed),
+and correctly separates "low-latency networking" from "network security" for
+profile_idx=16 — a distinction gemma4:e4b and others didn't consistently
+make. Offset by a topic-label-literalism flaw (see Metric 3) producing a
+couple of clear wrong accepts.
+
+**Metric 3 (Reasoning Quality): ~78 (3.9/5)** — Most detailed and specific
+reasoning of the 5 models, generally well-grounded in both conference content
+and profile specifics, no cross-profile contamination found. But a repeated
+flaw: pattern-matches on the dataset's crude topic *category label* rather
+than the conference's actual described focus. Clearest case: profile_idx=6
+(Neural Rendering) accepts ICASSP (acoustics/speech processing) and NCMMSC
+(speech communication) as relevant with reasoning "the topic 'Graphics'
+directly aligns" — using the generic label bucket, not the conference's real
+content (neither conference is actually about graphics).
+
+**Metric 4 (Relevancy Calibration): ~65** — Concrete, repeated internal
+contradiction between the decision agent and scorer *within the same run*:
+for the ICASSP/NCMMSC wrong accepts above, the scorer (same model) assigns
+relevancy 5.0 and 0.0 respectively — directly contradicting its own
+"relevant: true" call. A second confirmed instance: profile_idx=17 accepts
+POPL with a confident justification, but the scorer then assigns it just
+30.0 relevancy. Happened at least twice, indicating a systematic
+decision/scorer disagreement rather than a one-off — the lowest calibration
+score of the 5 models for this reason.
+
+**Metric 5 (Discrimination): ~95 (scaled)** — mean acceptance rate 0.344,
+stdev 0.169 — real variance, comparable to gemma4:e4b and llama3.2.
+
+**Total: ~85/100** — essentially ties gemma4:e4b for best overall. Notable
+since qwen3:4b wasn't part of the team's original extraction benchmark, so
+this is a new data point, not a confirmation of prior results. Also worth
+flagging as a practical footnote (not part of the 5-metric score): by far the
+slowest model, mean decision-call times of 10-18s vs. gemma's 5-7s, llama's
+~1s, phi4-mini's 3-4s.
 
 ## granite4:3b
 
