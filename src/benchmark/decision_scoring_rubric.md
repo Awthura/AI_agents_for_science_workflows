@@ -44,9 +44,29 @@ include:
   file, not designed in advance — so it reflects what each model actually
   produced, not a fixed pre-selected set
 
-## The 5 Metrics
+## v2 update: dropped Reliability and Discrimination from scoring
 
-### 1. Instruction-Following Reliability (weight: 20%) — deterministic, no judge needed
+After running all 5 metrics against real data, two of them turned out not to
+discriminate between models at all:
+- **Reliability**: every working model scored 100 (0 parse failures across
+  242 decisions each). Zero variance — it contributed 20% of every score
+  without doing any ranking work, which mechanically inflated and compressed
+  the whole scale (this is exactly the risk flagged in the "open items"
+  section below, now confirmed).
+- **Discrimination**: after scaling, 4 of 5 models landed at or near 95-100.
+  Real variance existed in the raw acceptance-rate stdev, but the scaling
+  approach compressed it into another near-constant.
+
+Both are still useful as **gates/diagnostics** (a model that failed
+Reliability or showed zero Discrimination would be flagged separately, not
+silently folded into the score), but they're no longer part of the weighted
+total. The final leaderboard score is now Decision Accuracy + Reasoning
+Quality + Relevancy Calibration at equal 33.3% each — the only 3 metrics
+that showed real, meaningful variance across the 5 models actually judged.
+
+## The 5 Metrics (Metrics 1 and 5 kept as diagnostics only — see v2 update above)
+
+### 1. Instruction-Following Reliability (diagnostic only, not scored) — deterministic, no judge needed
 
 What fraction of decisions were successfully parsed vs. fell back to the
 `except` branch in `decision.py`/`scorer.py` (visible as `reason` containing
@@ -61,7 +81,7 @@ This is the foundation metric: a model that can't reliably produce parseable
 output shouldn't score well regardless of how good its reasoning is when it
 *does* work. Directly computable from the JSON, no LLM judge involved.
 
-### 2. Decision Accuracy (weight: 30%) — Claude-judged
+### 2. Decision Accuracy (weight: 33.3%) — Claude-judged
 
 For each sampled (profile, conference, decision) triple, Claude independently
 answers: "Given this conference's name/topics and this researcher's
@@ -77,7 +97,7 @@ score_2 = accuracy * 100
 This is the single most important "did it get the right answer" metric,
 analogous to recall/precision in the extraction benchmark.
 
-### 3. Reasoning Quality (weight: 15%) — Claude-judged
+### 3. Reasoning Quality (weight: 33.3%) — Claude-judged
 
 For the same sample, Claude rates each `reason` string on a 1-5 scale:
 
@@ -97,7 +117,7 @@ Distinct from accuracy: a model can reach the *right* accept/reject
 conclusion with a lazy or generic reason, which this metric penalizes even
 when metric 2 doesn't.
 
-### 4. Relevancy Score Calibration (weight: 20%) — Claude-judged, accepted conferences only
+### 4. Relevancy Score Calibration (weight: 33.3%) — Claude-judged, accepted conferences only
 
 For each sampled *accepted* conference, Claude independently assigns its own
 0-100 relevancy estimate (same rubric text the scorer agent itself uses, in
@@ -114,7 +134,7 @@ wildly miscalibrated numbers (e.g. 95 for a marginal fit, 20 for a strong
 one) should score worse here even if metric 2 gives it credit for the
 accept/reject call itself.
 
-### 5. Discrimination / Consistency (weight: 15%) — deterministic, computed across all 20 profiles per model
+### 5. Discrimination / Consistency (diagnostic only, not scored) — deterministic, computed across all 20 profiles per model
 
 Does the model's acceptance rate actually vary by topic, or does it behave
 close to identically regardless of the researcher's field (a "lazy" model
@@ -142,9 +162,12 @@ flagging that explicitly rather than guessing a constant now.
 ## Final Leaderboard Score
 
 ```
-total = 0.20*score_1 + 0.30*score_2 + 0.15*score_3 + 0.20*score_4 + 0.15*score_5 - penalties
+total = 0.333*score_2 + 0.333*score_3 + 0.333*score_4 - penalties
 total = max(0, min(100, total))
 ```
+
+(score_1 and score_5 reported separately as pass/fail diagnostics, not part
+of the weighted total — see v2 update above.)
 
 ## Open items for v2 (not blocking a first pass)
 

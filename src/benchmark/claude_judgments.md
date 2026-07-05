@@ -216,16 +216,26 @@ which is comparable to the other conservative models.
 
 ---
 
-## Final Leaderboard (equal 20% weighting, v1)
+## Final Leaderboard (v2: equal 33.3% weighting on the 3 metrics that actually
+## showed variance; Reliability and Discrimination dropped from scoring —
+## see decision_scoring_rubric.md's "v2 update" section for why)
 
-| Rank | Model | Reliability | Accuracy | Reasoning | Calibration | Discrimination | **Total** |
+| Rank | Model | Accuracy | Reasoning | Calibration | **Total** | Reliability (diagnostic) | Discrimination (diagnostic) |
 |---|---|---|---|---|---|---|---|
-| 1 | gemma4:e4b | 100 | 85 | 70 | 75 | 100 | **~86** |
-| 2 | qwen3:4b | 100 | 87 | 78 | 65 | 95 | **~85** |
-| 3 | llama3.2 | 100 | 78 | 47 | 70 | 100 | **~79** |
-| 3 | phi4-mini | 100 | 73 | 60 | 75 | 86 | **~79** |
-| 5 | granite4:3b | 100 | 72 | 25 | 72 | 100 | **~74** |
-| — | deepseek-r1:7b | — | — | — | — | — | excluded (98.8% parse failure, needs rerun with `reasoning=False` fix) |
+| 1 | qwen3:4b | 87 | 78 | 65 | **~77** | 100 | 95 |
+| 1 | gemma4:e4b | 85 | 70 | 75 | **~77** | 100 | 100 |
+| 3 | phi4-mini | 73 | 60 | 75 | **~69** | 100 | 86 |
+| 4 | llama3.2 | 78 | 47 | 70 | **~65** | 100 | 100 |
+| 5 | granite4:3b | 72 | 25 | 72 | **~56** | 100 | 100 |
+| — | deepseek-r1:7b | — | — | — | excluded (98.8% parse failure, needs rerun with `reasoning=False` fix) | — | — |
+
+Dropping the two flat metrics meaningfully de-compresses the scale (was
+74-86, now 56-77) and reshuffles the ranking: gemma4:e4b and qwen3:4b now
+tie for first rather than gemma leading outright — the two metrics we
+dropped happened to slightly favor gemma's higher Discrimination score, which
+was itself just a byproduct of gemma's over-acceptance pattern, not a sign
+of better judgment. Removing it lets qwen3:4b's stronger nuanced accuracy
+and reasoning fully offset its weaker calibration.
 
 Cross-validates against the team's own extraction benchmark for the 2 models
 in common: gemma4:e4b (73/100) beat llama3.2 (59/100) there too — same
