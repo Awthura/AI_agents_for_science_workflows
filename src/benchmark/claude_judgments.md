@@ -95,7 +95,39 @@ independent cross-validation on a different task.
 
 ## phi4-mini
 
-(pending)
+**Metric 1 (Reliability): 100** — 0/242 parse failures.
+
+**Metric 2 (Decision Accuracy): ~73** — Multiple severe, clear-cut misses:
+0/13 accepted for the Type Systems profile (idx=11), missing FSE (a
+textbook fit even llama3.2 caught); 0/8 for Climate Modeling (idx=18) and
+0/8 for Public Health Surveillance (idx=19), both missing AAAI, which
+gemma4:e4b correctly accepted for both; 0/7 for Vector Search (idx=5),
+missing SIGKDD and WSDM (clear data-mining fits). More numerous severe
+misses than llama3.2, though each individual miss is a defensible-looking
+"not directly enough related" call rather than an obvious error in isolation.
+
+**Metric 3 (Reasoning Quality): ~60 (3.0/5)** — Notably cleaner than llama3.2:
+no systematic cross-profile contamination found (a couple of very minor
+traces, e.g. idx=4's BIBM rejection mentioning "AI agents for workflows",
+but nothing close to llama3.2's pervasive pattern). Distinct quirk instead:
+several decisions produce incoherent valid/relevant pairs where the reason
+argues invalidity ("not a standalone event," "embedded workshop") while
+relevant is marked true anyway, e.g. idx=15's HOTNETS (valid=false,
+relevant=true, reason focuses entirely on the standalone-event question and
+never actually resolves relevance). This model spends unusual effort
+specifically litigating conference "validity" over topical fit.
+
+**Metric 4 (Relevancy Calibration): ~75** — Reasonably consistent scores for
+the accepted cluster (mostly 85-95 for security/crypto profiles), similar
+calibration quality to gemma4:e4b.
+
+**Metric 5 (Discrimination): ~86 (scaled)** — mean acceptance rate 0.160,
+stdev 0.153 — lowest mean AND lowest variance of the 5 models (most
+conservative overall), though still real discrimination, not degenerate.
+
+**Total: ~79/100** — ties llama3.2's score, but via a different failure
+profile: llama3.2 trades better recall for severe reasoning contamination;
+phi4-mini has cleaner reasoning but misses more genuine accepts.
 
 ## qwen3:4b
 
