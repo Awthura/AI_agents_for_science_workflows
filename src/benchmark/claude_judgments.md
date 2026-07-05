@@ -53,7 +53,45 @@ with the over-acceptance finding above; real variance, not "lazy").
 
 ## llama3.2
 
-(pending)
+**Metric 1 (Reliability): 100** — 0/242 parse failures.
+
+**Metric 2 (Decision Accuracy): ~78** — Correctly handles the "easy" off-topic
+rejects (ICAIF/BIBM/SIGCSE) and correctly identifies the security/crypto
+cluster for relevant profiles (idx=2,3,15,16). But under-accepts genuinely
+on-topic venues: rejects SODA (discrete algorithms) for the Computational
+Complexity profile (idx=14, 0/5 accepted — a textbook miss), rejects CHI/IUI
+(HCI) for the Accessible Interfaces profile (idx=12, 0/14 accepted) and again
+for Human-AI Collaborative Interfaces (idx=13). At least 2 wrong accepts
+traced directly to hallucinated reasoning (see Metric 3).
+
+**Metric 3 (Reasoning Quality): ~47 (2.3/5)** — Severe, repeated cross-profile
+contamination: reasons frequently cite an entirely different profile's topic,
+not the one actually being judged. Examples: profile_idx=4 (Knowledge Graph
+Construction) rejects BIBM citing "AI agents for workflows" (profile 0's
+topic) and rejects SIGCSE citing "computer vision" (neither belongs to this
+profile). profile_idx=9 (Distributed Storage) rejects INFOCOM citing "secure
+communication protocols" (profile 2's topic). profile_idx=11 (Type Systems)
+does the same. profile_idx=12/13 reject CHI citing "model alignment"
+(profile 1's topic). Most striking: profile_idx=19 (Public Health
+Surveillance) *accepts* AAMAS with "directly addresses the core technology
+(autonomous agents/multiagent systems) central to the researcher's work" —
+near-verbatim language from profile_idx=0, producing a wrong accept as a
+direct result. Also found a reason-contradicts-decision case: profile_idx=9
+rejects MSN while its own reason states "directly relevant to the
+researcher's specific field."
+
+**Metric 4 (Relevancy Calibration): ~70** — Reasonable for the security
+cluster (mostly 80-100), but some accepted items get erratic low scores with
+no clear justification (EACL=40, FC=50 for profile_idx=3, both accepted
+conferences scored lower than several rejected ones would deserve).
+
+**Metric 5 (Discrimination): 100 (scaled)** — mean acceptance rate 0.228,
+stdev 0.183 across 20 profiles — real variance, comparable to gemma's, despite
+a much lower overall acceptance rate (more conservative model overall).
+
+**Total: ~79/100** — notably below gemma4:e4b (~86), directionally consistent
+with the team's own extraction benchmark (gemma4:e4b 73 vs llama3.2 59) —
+independent cross-validation on a different task.
 
 ## phi4-mini
 
