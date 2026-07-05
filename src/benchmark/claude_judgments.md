@@ -254,3 +254,245 @@ from other profiles; phi4-mini under-accepts and fixates on conference
 "validity" logic over topical fit; qwen3:4b reasons best but pattern-matches
 on topic labels and its own scorer contradicts its own decisions; granite4:3b's
 reasoning routinely argues the opposite of its own decision.
+
+---
+
+# Self-Validation Experiment (v3)
+
+Prompted by supervisor feedback (Valerie, 2026-07-05): a live demo run
+recommended `ACCV` (computer vision) to a researcher on edge speech
+processing, justified as "closely related" — the exact prestige-halo/generic-
+AI-adjacency pattern already documented above for `gemma4:e4b`. Added a
+second LLM call to the decision agent (`agents/decision.py`'s `_validate()`,
+commit `e2a7c7f`) that reviews the first decision's reasoning for two
+specific failure modes before finalizing: (1) generic AI-adjacency
+justification without a substantive topic overlap, (2) hallucinated details
+not present in the researcher's actual profile. Re-ran the full 6-model x
+20-profile benchmark with `self_validate=True`, writing to
+`decision_scoring_results_selfvalidated.json` (baseline file untouched).
+`deepseek-r1:7b` is excluded from this analysis — the validation call itself
+fails to parse for that model and doesn't fall back to the original decision
+as the current code should (see conversation notes; looks like a stale
+`__pycache__` on the server, not a logic bug — pending a clean re-run).
+
+## Methodology note
+
+`gemma4:e4b` got the same full line-by-line read as the baseline review (all
+242 decisions). For the other 4 models, scores are derived from (a) the
+override-direction statistics below (computed directly from the data, not
+judgment calls) and (b) targeted qualitative sampling of the actual
+overridden decisions (not a full re-read of all 242 unchanged-plus-changed
+decisions per model — unchanged decisions carry no new information since
+they're identical to what was already judged in the baseline review).
+Directionally solid given how strong and consistent the pattern below is,
+but individual model scores here carry more uncertainty than the baseline
+scores.
+
+## Core finding: the validator has a systematic reject-bias
+
+Framing the second pass as "a skeptical reviewer checking for failure modes"
+(see `_VALIDATION_SYSTEM` in `agents/decision.py`) biases it toward finding
+problems and rejecting, not toward neutrally re-judging. This is visible
+directly in the override direction — for every model except gemma4:e4b, the
+overwhelming majority of overrides flip accept to reject, not the reverse:
+
+| Model | Override rate | accept→reject | reject→accept |
+|---|---|---|---|
+| gemma4:e4b | 10.7% (26/242) | 10 | 12 |
+| llama3.2 | 54.1% (131/242) | 49 | 1 |
+| phi4-mini | 50.4% (122/242) | 28 | 2 |
+| qwen3:4b | 28.5% (69/242) | 41 | 4 |
+| granite4:3b | 46.3% (112/242) | 21 | 3 |
+
+The practical consequence: this specific validation design helps a model
+that was already over-accepting (gemma4:e4b, roughly balanced 10:12) but
+actively harms models that were already appropriately strict or under-
+accepting (llama3.2 especially, at a stark 49:1 ratio) — it makes an
+already-too-strict model even stricter, compounding rather than fixing the
+problem.
+
+## Per-model findings
+
+### gemma4:e4b (full read)
+
+Genuine mixed bag — roughly equal parts real fixes and new fabrications,
+some of them worse than anything found at baseline.
+
+**Good catches (real fixes):**
+- profile_idx=1 correctly flips `SIGCSE` to reject: "relies on the generic
+  premise that 'applied AI/LLMs' relate to CS education without specifying a
+  substantive overlap."
+- profile_idx=18 produces an excellent, textbook self-critique of `ACCV`:
+  "commits a superficial justification by claiming an overlap because both
+  involve 'deep learning'... the connection to pure Computer Vision
+  techniques... is too tenuous... speculative at best."
+- profile_idx=10 correctly flips `ACCV` to reject: "unsubstantiated leap...
+  these are distinct subfields."
+
+**New fabrications introduced BY validation (worse than baseline):**
+- profile_idx=6 flips `ICASSP` from a correct reject to a wrong accept via
+  an invented connection: "Neural Rendering and 3D Reconstruction are highly
+  relevant to modern speech/signal processing applications (e.g., virtual
+  scene capture for speech analysis)" — structurally the *same* error
+  Valerie flagged (claiming vision/graphics work relates to speech/audio),
+  except here the validator introduced it rather than catching it.
+- profile_idx=9's `AAMAS` justification ("almost perfect technical match for
+  a project building an automated multi-agent system") is lifted from
+  profile_idx=0's actual topic, not this profile's (Distributed Storage) —
+  genuine cross-profile contamination introduced by the validator itself.
+- profile_idx=4's `ACCV` override explicitly states "I correct the validity
+  but maintain relevance due to the broader 'AI' topic listed for the
+  conference" — an admitted fallback to the crude topic label, not
+  substance.
+- profile_idx=17's `SANER`/`OSDI`/`HOTNETS` all flip to accept while the
+  reasoning literally admits weakness ("sufficiently broad... to allow for a
+  plausible link") yet still concludes relevant — a self-contradiction.
+
+**Self-validated scores**: Accuracy ~86 (flat), Reasoning ~63 (down from 70
+— confident-sounding "the original reasoning is correct because..." wrapper
+phrasing makes weak justifications sound more validated without adding real
+substance), Calibration ~75 (flat). **Total: ~75** (down slightly from 77).
+
+### llama3.2 (override-stats + sampling)
+
+The worst regression of the 5. Validation didn't just fail to fix
+llama3.2's known issues (cross-profile contamination, under-acceptance) — it
+actively destroyed a previously-**correct** cluster of decisions.
+
+Profile_idx=2 (Network Security and Cryptography) is the clearest case: at
+baseline (pre-validation), llama3.2 correctly accepted the entire relevant
+security/crypto cluster — `CHES`, `USENIX SECURITY`, `FC`, `CSCLOUD`,
+`SODA`, `INFOCOM`. Validation flipped every one of them to reject, often
+with reasoning that just restates the same description that justified the
+original accept, then concludes the opposite — e.g. `CHES`: pre-validation
+reason "The conference focuses on hardware and embedded security, which is
+directly relevant to the researcher's work on secure communication
+protocols" (correct, accept) vs. final reason "The conference focuses
+heavily on hardware and embedded security, which doesn't directly align
+with the researcher's focus on cryptographic implementations for secure
+communication protocols" (same facts, now concludes reject).
+
+**Self-validated scores**: Accuracy ~58 (down sharply from 78), Reasoning
+~50 (up slightly from 47 — more specific-*sounding* language, but reaching
+wrong conclusions more often, so specificity of phrasing is decoupled from
+correctness here), Calibration ~65 (down from 70, fewer accepted items to
+calibrate against). **Total: ~58** (down from 65).
+
+### phi4-mini (override-stats + sampling)
+
+Same reject-bias problem as llama3.2, compounding an already-under-
+accepting baseline (recall: baseline phi4-mini already missed `FSE` for
+Type Systems, `AAAI` for Climate Modeling and Public Health, `SIGKDD`/`WSDM`
+for Vector Search). The 28:2 accept→reject skew pushes an already-too-strict
+model further in the wrong direction.
+
+**Self-validated scores**: Accuracy ~60 (down from 73), Reasoning ~55
+(roughly flat/slightly down — the "conference validity litigation" quirk
+from baseline persists, no structural change), Calibration ~72 (flat).
+**Total: ~62** (down from 69).
+
+### qwen3:4b (override-stats + sampling)
+
+Mixed, but net negative — qwen3:4b was already the most accurate model at
+baseline, so a reject-biased "fix" mostly introduces new over-corrections
+rather than catching real errors.
+
+**One good refinement**: profile_idx=4's `WSDM` override sharpens a
+correct accept with better-grounded reasoning: "researcher's work on
+knowledge graph construction via entity linking and relation extraction is
+more specifically aligned with WSDM's focus on data mining and information
+retrieval than a generic AI connection... explicitly states relevance to
+relation and entity extraction for KG construction" — genuine improvement
+in reasoning specificity without changing the (correct) decision.
+
+**But real over-correction**: profile_idx=6 wrongly flips `ACCV` to reject
+for a Neural Rendering researcher: "Computer vision (ACCV focus) and neural
+radiance fields/3D reconstruction (research) are distinct subfields; vision
+tasks like image processing differ fundamentally from 3D scene
+reconstruction" — overly strict; in actual academic practice neural
+rendering work is commonly published at computer-vision venues, so this is
+a real accuracy regression, not a fix.
+
+**And a backslide into its own known flaw**: profile_idx=6's `NCMMSC`
+(speech communication, same profile) flips from a correct reject to a wrong
+accept: "the conference's 'Graphics' topic is broad but... aligns with the
+conference's graphics focus" — falling back on the crude topic label again,
+the exact literalism flaw documented in qwen3:4b's baseline review.
+
+**Self-validated scores**: Accuracy ~79 (down from 87), Reasoning ~72 (down
+slightly from 78), Calibration ~65 (flat — same decision/scorer internal
+contradiction from baseline likely persists, not something this validation
+pass touches). **Total: ~72** (down from 77).
+
+### granite4:3b (override-stats + sampling)
+
+The one model where self-validation shows a genuine, targeted improvement —
+not on accuracy, but specifically on the defect that tanked its baseline
+Reasoning score.
+
+Baseline granite4:3b's signature bug was the `reason` text arguing FOR
+relevance while `relevant` was set to `false` — confirmed in a majority of
+profiles at baseline. Checking the same pattern post-validation (reason
+contains "directly relevant"/"highly relevant"/"aligns with"/"aligns
+perfectly" while `relevant=False`): only 10/242 decisions (4.1%) now show
+it, a meaningful reduction. Some of the remaining cases have shifted form —
+now the validator's reasoning explicitly argues the *original* decision was
+wrong to reject (e.g. idx=9's `WCNC`: "The original reason incorrectly
+concludes that the conference is not directly relevant...") but then still
+concludes `relevant=False` itself — a related but distinct residual bug
+(the validator critiques the premise but doesn't follow through to a
+consistent conclusion).
+
+The accuracy cost: granite4:3b's boolean pattern was already fairly
+conservative at baseline (mean acceptance 0.223); the reject-bias pushes
+this further, likely costing some real accepts.
+
+**Self-validated scores**: Accuracy ~65 (down slightly from 72), Reasoning
+~48 (up substantially from 25 — the specific defect that drove this
+model's low baseline score is genuinely, measurably better), Calibration
+~70 (roughly flat). **Total: ~61** (up from 56).
+
+## Full comparison table
+
+| Model | Metric | Baseline | Self-validated | Δ |
+|---|---|---|---|---|
+| **gemma4:e4b** | Accuracy | 85 | 86 | +1 |
+| | Reasoning | 70 | 63 | -7 |
+| | Calibration | 75 | 75 | 0 |
+| | **Total** | **77** | **75** | **-2** |
+| **qwen3:4b** | Accuracy | 87 | 79 | -8 |
+| | Reasoning | 78 | 72 | -6 |
+| | Calibration | 65 | 65 | 0 |
+| | **Total** | **77** | **72** | **-5** |
+| **phi4-mini** | Accuracy | 73 | 60 | -13 |
+| | Reasoning | 60 | 55 | -5 |
+| | Calibration | 75 | 72 | -3 |
+| | **Total** | **69** | **62** | **-7** |
+| **granite4:3b** | Accuracy | 72 | 65 | -7 |
+| | Reasoning | 25 | 48 | +23 |
+| | Calibration | 72 | 70 | -2 |
+| | **Total** | **56** | **61** | **+5** |
+| **llama3.2** | Accuracy | 78 | 58 | -20 |
+| | Reasoning | 47 | 50 | +3 |
+| | Calibration | 70 | 65 | -5 |
+| | **Total** | **65** | **58** | **-7** |
+| **deepseek-r1:7b** | — | excluded | excluded (validation call fails to parse, needs clean re-run) | — |
+
+**Ranking changes**: baseline had qwen3:4b/gemma4:e4b tied for 1st,
+phi4-mini/llama3.2 tied for 3rd, granite4:3b last. Self-validated:
+**gemma4:e4b (75) > qwen3:4b (72) > phi4-mini (62) > granite4:3b (61) >
+llama3.2 (58)** — llama3.2 falls from a tie for 3rd to clearly last, and
+granite4:3b is the only model that improves overall.
+
+## Conclusion
+
+Self-validation as currently designed is **not a net-positive change to
+ship as-is**. It's the right idea (Valerie's feedback was real and
+reproducible), but the specific prompt framing ("skeptical reviewer
+checking for failure modes") introduces a systematic bias toward rejection
+that helps exactly one failure mode (over-acceptance, gemma4:e4b's problem)
+while making the opposite failure mode (under-acceptance, llama3.2 and
+phi4-mini's problem) worse. A less asymmetric validation prompt — one that
+checks for *both* over-rejection and over-acceptance with equal scrutiny,
+rather than only hunting for "generic AI-adjacency" accepts — would be
+worth testing before considering this for the live pipeline.
