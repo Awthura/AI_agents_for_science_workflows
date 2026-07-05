@@ -82,7 +82,7 @@ screen -dmS "${SCREEN_SESSION}" bash -c \
      export HTTPS_PROXY='http://fp.cs.ovgu.de:3210/'; \
      export NO_PROXY='localhost,127.0.0.1'; \
      export TMPDIR=/var/tmp; \
-     ${VENV_PYTHON} src/benchmark/decision_scoring_benchmark.py 2>&1 | tee ${LOG_FILE}"
+     ${VENV_PYTHON} -u src/benchmark/decision_scoring_benchmark.py 2>&1 | tee ${LOG_FILE}"
 
 sleep 2
 if screen -ls 2>/dev/null | grep -q "${SCREEN_SESSION}"; then
