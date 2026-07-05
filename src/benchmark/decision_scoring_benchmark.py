@@ -45,16 +45,25 @@ from benchmark.decision_scoring_profiles import PROFILES  # noqa: E402
 OLLAMA_URL = "http://localhost:11434"
 DATA_FILE = Path(__file__).parent.parent.parent / "future_conferences.json"
 
-# Adds a second LLM call per conference that scrutinizes the decision agent's
-# own reasoning before finalizing (see agents/decision.py's _VALIDATION_SYSTEM)
-# -- targets the "generic AI-adjacency" and hallucinated-detail failure modes
-# documented in claude_judgments.md. Roughly doubles decision-agent latency.
-# Writes to a separate results file so the original baseline run (no
-# self-validation) is never overwritten -- the two files stay directly
-# comparable since they share the same schema.
-SELF_VALIDATE = True
-RESULTS_FILE = Path(__file__).parent / (
-    "decision_scoring_results_selfvalidated.json" if SELF_VALIDATE else "decision_scoring_results.json"
+# Which hallucination-mitigation experiment to run, if any. Each writes to
+# its own results file so runs stay independently comparable against the
+# plain baseline (mode="baseline", decision_scoring_results.json) -- see
+# src/benchmark/claude_judgments.md for the write-up of each experiment.
+#   "baseline"      -- no mitigation, the original run
+#                      (decision_scoring_results.json)
+#   "selfvalidated" -- second LLM call scrutinizes the first decision before
+#                      finalizing (agents/decision.py's _VALIDATION_SYSTEM).
+#                      Roughly doubles decision-agent latency. Found to help
+#                      over-accepting models but hurt already-strict ones
+#                      (see claude_judgments.md's "Self-Validation Experiment").
+#   "fewshot"       -- 4 worked examples added to the system prompt
+#                      (agents/decision.py's _FEWSHOT_EXAMPLES). Pure prompt
+#                      change, no added latency or calls.
+MODE = "fewshot"
+RESULTS_FILE = (
+    Path(__file__).parent / "decision_scoring_results.json"
+    if MODE == "baseline"
+    else Path(__file__).parent / f"decision_scoring_results_{MODE}.json"
 )
 
 MODELS = [
@@ -88,7 +97,7 @@ def _save_results(results: list[dict]) -> None:
                 "run_at": datetime.now().isoformat(),
                 "models": MODELS,
                 "profile_count": len(PROFILES),
-                "self_validate": SELF_VALIDATE,
+                "mode": MODE,
                 "results": results,
             },
             indent=2,
@@ -136,7 +145,9 @@ def main() -> None:
             error = None
             try:
                 accepted, rejected, decision_timing = run_decision_agent(
-                    pre_filtered, profile, model, OLLAMA_URL, self_validate=SELF_VALIDATE
+                    pre_filtered, profile, model, OLLAMA_URL,
+                    self_validate=(MODE == "selfvalidated"),
+                    few_shot=(MODE == "fewshot"),
                 )
                 if accepted:
                     scored, scorer_timing = run_scorer(accepted, profile, model, OLLAMA_URL)

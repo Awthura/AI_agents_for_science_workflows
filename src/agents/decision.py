@@ -48,6 +48,43 @@ Schema:
   "reason": "one sentence explaining your decision"
 }"""
 
+# Four examples targeting the specific fabrication patterns documented in
+# src/benchmark/claude_judgments.md: generic "both involve AI/data" hand-
+# waving (examples 1, 4), treating the coarse topic-category label as
+# evidence of relevance rather than checking actual content (example 2),
+# and what a genuinely specific, grounded overlap looks like (example 3).
+_FEWSHOT_EXAMPLES = """
+
+Examples of correct vs incorrect reasoning:
+
+Example 1 (reject — generic justification is not enough):
+Conference: IEEE International Conference on Big Data (topics: Interdiscipline/Mixture/Emerging)
+Researcher: "Neural Rendering and 3D Reconstruction" — neural radiance fields and differentiable rendering for photorealistic 3D scene reconstruction.
+WRONG reasoning: "Relevant because both involve large-scale data processing."
+CORRECT: {"valid": true, "relevant": false, "reason": "Big Data conferences address data storage/processing infrastructure generally; the researcher's work is specifically about rendering algorithms, with no shared methodology beyond both broadly 'processing data'."}
+
+Example 2 (reject — a topic label is not evidence, check actual content):
+Conference: IEEE International Conference on Acoustics, Speech, and Signal Processing (topics: Graphics)
+Researcher: "Neural Rendering and 3D Reconstruction" — same profile as above.
+WRONG reasoning: "The topic 'Graphics' listed for this conference aligns with the researcher's graphics-adjacent work."
+CORRECT: {"valid": true, "relevant": false, "reason": "Despite being tagged 'Graphics' in this dataset, the conference's actual focus is acoustics and speech signal processing — a different modality from visual 3D rendering. A topic label is a coarse category, not proof of relevance."}
+
+Example 3 (accept — this is what a genuine, specific overlap looks like):
+Conference: ACM Knowledge Discovery and Data Mining (topics: Database/Data Mining/Information Retrieval)
+Researcher: "Knowledge Graph Construction from Unstructured Text" — automates knowledge graph population using entity linking and relation extraction.
+CORRECT: {"valid": true, "relevant": true, "reason": "The conference's core focus on data mining and information extraction directly covers entity linking and relation extraction, the specific techniques named in the researcher's own work — not just a generic 'both involve AI' connection."}
+
+Example 4 (reject — being AI-adjacent in the broadest sense is not sufficient):
+Conference: AAAI Conference on Artificial Intelligence (topics: Artificial Intelligence)
+Researcher: "Energy-Efficient GPU Accelerator Design" — designs low-power accelerator architectures for deep learning inference.
+WRONG reasoning: "Relevant because the researcher's work supports AI/deep learning."
+CORRECT: {"valid": true, "relevant": false, "reason": "AAAI covers AI algorithms and models broadly; the researcher's work is specifically about hardware architecture for accelerating inference, a distinct systems/hardware subfield. The conference must share the researcher's specific technical focus, not just be AI-adjacent."}"""
+
+
+def _system_prompt(few_shot: bool) -> str:
+    return _SYSTEM + _FEWSHOT_EXAMPLES if few_shot else _SYSTEM
+
+
 # Targets two specific failure modes observed in production and in the
 # decision/scoring benchmark (src/benchmark/claude_judgments.md): (1) models
 # treating "both are broadly AI/CS-adjacent" as sufficient grounds for
@@ -146,11 +183,12 @@ def decide(
     model: str,
     ollama_base_url: str,
     self_validate: bool = False,
+    few_shot: bool = False,
 ) -> Conference:
     llm = _llm(model, ollama_base_url)
 
     prompt = (
-        f"{_SYSTEM}\n\n"
+        f"{_system_prompt(few_shot)}\n\n"
         f"Conference:\n{_format_conference(conference)}\n\n"
         f"Researcher profile:\n"
         f"Research title: {user_prefs.research_title}\n"
@@ -182,17 +220,26 @@ def run_decision_agent(
     model: str,
     ollama_base_url: str,
     self_validate: bool = False,
+    few_shot: bool = False,
 ) -> tuple[list[Conference], list[Conference], dict]:
     """Return (accepted, rejected, timing) where timing has inference stats.
 
     self_validate=True adds a second LLM call per conference that scrutinizes
     the first decision's reasoning before finalizing it -- roughly doubles
-    latency, see _VALIDATION_SYSTEM above for what it checks."""
+    latency, see _VALIDATION_SYSTEM above for what it checks.
+
+    few_shot=True adds 4 worked examples to the system prompt (see
+    _FEWSHOT_EXAMPLES) targeting the specific fabrication patterns documented
+    in src/benchmark/claude_judgments.md -- no added latency or LLM calls,
+    pure prompt change."""
     accepted, rejected = [], []
     times = []
     for conf in conferences:
         t0 = time.perf_counter()
-        conf = decide(conf, user_prefs, model, ollama_base_url, self_validate=self_validate)
+        conf = decide(
+            conf, user_prefs, model, ollama_base_url,
+            self_validate=self_validate, few_shot=few_shot,
+        )
         times.append(round(time.perf_counter() - t0, 3))
         if conf.decision and conf.decision.valid and conf.decision.relevant:
             accepted.append(conf)
