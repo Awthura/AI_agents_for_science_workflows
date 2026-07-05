@@ -10,10 +10,20 @@ OLLAMA_BIN="${OLLAMA_DIR}/bin/ollama"
 OLLAMA_MODELS="${OLLAMA_DIR}/models"
 OLLAMA_DOWNLOAD_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
 
-# Models to pull by default
-DEFAULT_MODELS=("llama3.2" "gemma2:9b")
-# Optional larger models — uncomment to include:
-# OPTIONAL_MODELS=("gemma4:e4b" "llama4")
+# Models to pull by default. Selected from the project's extraction benchmark
+# (src/benchmark/*) plus current (2026) small models under the project's 8B
+# parameter research scope — see thoughts.md / presentation for rationale.
+# gemma4:e4b is default/pre-loaded (scripts/start_ollama.sh) since it's the
+# empirically best performer in the team's own benchmark (73/100 vs next-best
+# llama3.2 at 59/100).
+DEFAULT_MODELS=(
+    "gemma4:e4b"
+    "llama3.2"
+    "phi4-mini"
+    "qwen3:4b"
+    "granite4:3b"
+    "deepseek-r1:7b"
+)
 
 # ── Proxy (required for all HTTP traffic on the cluster) ────────────────────
 export HTTP_PROXY='http://fp.cs.ovgu.de:3210/'
@@ -114,6 +124,7 @@ add_to_bashrc "export HTTPS_PROXY='http://fp.cs.ovgu.de:3210/'"
 add_to_bashrc "export NO_PROXY='localhost,127.0.0.1'"
 add_to_bashrc "export TMPDIR=/var/tmp"
 add_to_bashrc "export OLLAMA_MODELS=${OLLAMA_MODELS}"
+add_to_bashrc "export OLLAMA_MAX_LOADED_MODELS=1"
 echo "[✓] ~/.bashrc is up to date."
 
 # ── 5. Check available RAM ───────────────────────────────────────────────────
@@ -123,7 +134,7 @@ MEM_AVAIL_GB=$(echo "scale=1; ${MEM_AVAIL_KB}/1048576" | bc)
 echo "[i] Available RAM: ~${MEM_AVAIL_GB} GB"
 if (( MEM_AVAIL_KB < 8000000 )); then
     echo "[!] WARNING: Less than 8 GB available. Large models may cause OOM kills."
-    echo "    Stick to llama3.2 or gemma2:9b."
+    echo "    Stick to llama3.2, phi4-mini, qwen3:4b, or granite4:3b (all under 3GB)."
 fi
 
 # ── 6. Pull models ───────────────────────────────────────────────────────────

@@ -8,6 +8,11 @@ set -e
 OLLAMA_BIN="/project/${LOGNAME}/ollama/bin/ollama"
 OLLAMA_MODELS="/project/${LOGNAME}/ollama/models"
 SCREEN_SESSION="ollama"
+# Empirically the best performer in the team's extraction benchmark (73/100,
+# see src/benchmark/benchmark_4_with_score) — pre-loaded so it's ready before
+# the first real request. OLLAMA_MAX_LOADED_MODELS=1 (below) means loading
+# any other model automatically evicts this one; nothing extra to manage.
+DEFAULT_MODEL="gemma4:e4b"
 
 echo "======================================================"
 echo " Ollama Start — OVGU AILab Cluster"
@@ -42,6 +47,7 @@ fi
 
 # ── 4. Set env vars ──────────────────────────────────────────────────────────
 export OLLAMA_MODELS="${OLLAMA_MODELS}"
+export OLLAMA_MAX_LOADED_MODELS=1
 export HTTP_PROXY='http://fp.cs.ovgu.de:3210/'
 export HTTPS_PROXY='http://fp.cs.ovgu.de:3210/'
 export NO_PROXY='localhost,127.0.0.1'
@@ -51,6 +57,7 @@ export TMPDIR=/var/tmp
 echo "[*] Starting Ollama in screen session '${SCREEN_SESSION}'..."
 screen -dmS "${SCREEN_SESSION}" bash -c \
     "export OLLAMA_MODELS=${OLLAMA_MODELS}; \
+     export OLLAMA_MAX_LOADED_MODELS=1; \
      export HTTP_PROXY='http://fp.cs.ovgu.de:3210/'; \
      export HTTPS_PROXY='http://fp.cs.ovgu.de:3210/'; \
      export TMPDIR=/var/tmp; \
@@ -71,7 +78,18 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# ── 7. Show available models ─────────────────────────────────────────────────
+# ── 7. Warm up the default model ─────────────────────────────────────────────
+echo ""
+echo "[*] Pre-loading default model (${DEFAULT_MODEL})..."
+if curl -sf --noproxy localhost -X POST http://localhost:11434/api/generate \
+    -d "{\"model\": \"${DEFAULT_MODEL}\", \"keep_alive\": -1}" > /dev/null 2>&1; then
+    echo "[✓] ${DEFAULT_MODEL} is loaded and will stay resident until a different"
+    echo "    model is requested (OLLAMA_MAX_LOADED_MODELS=1 evicts it then)."
+else
+    echo "[!] Could not pre-load ${DEFAULT_MODEL} — is it pulled? Run scripts/setup_ollama.sh."
+fi
+
+# ── 8. Show available models ─────────────────────────────────────────────────
 echo ""
 echo "[i] Available models:"
 "${OLLAMA_BIN}" list

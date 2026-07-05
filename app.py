@@ -10,11 +10,13 @@ Accessible at http://localhost:7860 (or http://<zone-ip>:7860 within OVGU networ
 from __future__ import annotations
 
 import io
+import json
 import os
 import queue
 import sys
 import threading
 import time
+import urllib.request
 from pathlib import Path
 
 import gradio as gr
@@ -40,8 +42,41 @@ if not DEMO_MODE:
     from schemas.conference import Conference, UserPreferences  # noqa: E402
     from tools.geocoding import geocode  # noqa: E402
 
-AVAILABLE_MODELS = ["llama3.2", "gemma2:9b"]
+# Selected from the project's own extraction benchmark (src/benchmark/*) plus
+# current small models under the project's 8B-parameter research scope.
+# gemma4:e4b is the empirically best performer (73/100 vs runner-up llama3.2
+# at 59/100) and is what scripts/start_ollama.sh pre-loads by default.
+AVAILABLE_MODELS = [
+    "gemma4:e4b",
+    "llama3.2",
+    "phi4-mini",
+    "qwen3:4b",
+    "granite4:3b",
+    "deepseek-r1:7b",
+]
 DEFAULT_OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+
+
+def _get_loaded_models(ollama_url: str) -> set[str]:
+    """Query Ollama's /api/ps for currently loaded models — used to show a
+    green ready-indicator in the model dropdown. Returns an empty set (no
+    indicator shown) if Ollama isn't reachable, rather than raising."""
+    try:
+        req = urllib.request.Request(f"{ollama_url.rstrip('/')}/api/ps")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read())
+        return {m["name"] for m in data.get("models", [])}
+    except Exception:
+        return set()
+
+
+def _model_choices(ollama_url: str) -> list[tuple[str, str]]:
+    """Dropdown (label, value) pairs — label gets a green ready-mark for
+    whichever model Ollama currently has loaded. The underlying value stays
+    the plain model name regardless of label, so nothing else needs to know
+    about the indicator."""
+    loaded = _get_loaded_models(ollama_url)
+    return [(f"{m}  \U0001f7e2 ready" if m in loaded else m, m) for m in AVAILABLE_MODELS]
 
 _DEMO_ROWS = [
     [1, "ICML - International Conference on Machine Learning", "2026-07-13", "Vienna, Austria", "A*", "2026-02-06", "94.2", "Strong match: deep learning focus, close location."],
@@ -226,7 +261,7 @@ Enter your details below and click **Run** to get a personalised list of upcomin
             scale=3,
         )
         model_drop = gr.Dropdown(
-            choices=AVAILABLE_MODELS,
+            choices=_model_choices(DEFAULT_OLLAMA_URL) if not DEMO_MODE else AVAILABLE_MODELS,
             value=AVAILABLE_MODELS[0],
             label="Ollama model",
             scale=1,
@@ -273,6 +308,18 @@ Enter your details below and click **Run** to get a personalised list of upcomin
         inputs=[address_box, title_box, context_box, model_drop, ollama_url_box],
         outputs=[log_box, results_table],
     )
+
+    if not DEMO_MODE:
+        # Refresh the green ready-mark periodically. Loading a model only
+        # happens lazily when "Run pipeline" is clicked (not on dropdown
+        # change), so this just reflects whatever Ollama currently has
+        # resident — including models loaded by other users' runs.
+        model_status_timer = gr.Timer(5)
+        model_status_timer.tick(
+            fn=lambda url: gr.update(choices=_model_choices(url)),
+            inputs=[ollama_url_box],
+            outputs=[model_drop],
+        )
 
 if __name__ == "__main__":
     # Access via SSH tunnel, not the jhub.cs.ovgu.de Apache proxy: that proxy

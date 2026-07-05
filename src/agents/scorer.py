@@ -11,12 +11,22 @@ Weighted total = 0.50 * relevancy + 0.30 * distance + 0.20 * prestige
 from __future__ import annotations
 
 import json
+import re
 import time
 
 from langchain_ollama import ChatOllama
 
 from schemas.conference import Conference, ConferenceScores, CoreRank, UserPreferences
 from tools.geocoding import distance_to_score, geocode, haversine_km
+
+
+def _extract_json(text: str) -> str:
+    """Strip <think>...</think> reasoning blocks (e.g. deepseek-r1, which
+    emits these even under format="json") and markdown code fences before
+    parsing — some models wrap JSON in these despite being told not to."""
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    text = re.sub(r"```(?:json)?\n?|\n?```", "", text)
+    return text.strip()
 
 
 WEIGHTS = {"relevancy": 0.50, "distance": 0.30, "prestige": 0.20}
@@ -84,7 +94,7 @@ def _relevancy_score(
     )
     try:
         response = llm.invoke(prompt)
-        data = json.loads(response.content)
+        data = json.loads(_extract_json(response.content))
         score = float(max(0, min(100, data.get("score", 0))))
         explanation = data.get("explanation", "")
         return score, explanation

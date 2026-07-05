@@ -10,11 +10,21 @@ Returns a DecisionResult attached to the conference.
 from __future__ import annotations
 
 import json
+import re
 import time
 
 from langchain_ollama import ChatOllama
 
 from schemas.conference import Conference, DecisionResult, UserPreferences
+
+
+def _extract_json(text: str) -> str:
+    """Strip <think>...</think> reasoning blocks (e.g. deepseek-r1, which
+    emits these even under format="json") and markdown code fences before
+    parsing — some models wrap JSON in these despite being told not to."""
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    text = re.sub(r"```(?:json)?\n?|\n?```", "", text)
+    return text.strip()
 
 
 _SYSTEM = """\
@@ -73,7 +83,7 @@ def decide(
 
     try:
         response = llm.invoke(prompt)
-        data = json.loads(response.content)
+        data = json.loads(_extract_json(response.content))
         conference.decision = DecisionResult(
             valid=bool(data.get("valid", False)),
             relevant=bool(data.get("relevant", False)),
