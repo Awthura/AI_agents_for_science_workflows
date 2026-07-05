@@ -169,6 +169,10 @@ total = max(0, min(100, total))
 (score_1 and score_5 reported separately as pass/fail diagnostics, not part
 of the weighted total — see v2 update above.)
 
+**Tiebreak rule**: if two models land on the same total, rank by Decision
+Accuracy (score_2) alone — the single metric we'd trust most in isolation if
+forced to pick one, rather than introducing a separate secondary formula.
+
 ## Open items for v2 (not blocking a first pass)
 
 - Metric 5's scaling factor needs calibration once real acceptance-rate data exists.

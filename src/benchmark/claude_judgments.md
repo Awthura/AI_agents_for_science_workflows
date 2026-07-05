@@ -223,19 +223,23 @@ which is comparable to the other conservative models.
 | Rank | Model | Accuracy | Reasoning | Calibration | **Total** | Reliability (diagnostic) | Discrimination (diagnostic) |
 |---|---|---|---|---|---|---|---|
 | 1 | qwen3:4b | 87 | 78 | 65 | **~77** | 100 | 95 |
-| 1 | gemma4:e4b | 85 | 70 | 75 | **~77** | 100 | 100 |
+| 2 | gemma4:e4b | 85 | 70 | 75 | **~77** | 100 | 100 |
 | 3 | phi4-mini | 73 | 60 | 75 | **~69** | 100 | 86 |
 | 4 | llama3.2 | 78 | 47 | 70 | **~65** | 100 | 100 |
 | 5 | granite4:3b | 72 | 25 | 72 | **~56** | 100 | 100 |
 | — | deepseek-r1:7b | — | — | — | excluded (98.8% parse failure, needs rerun with `reasoning=False` fix) | — | — |
 
+Tiebreak rule: when the 3-metric average ties, rank by Decision Accuracy
+(the single "did it get the right answer" metric) — qwen3:4b (87) beats
+gemma4:e4b (85), so qwen3:4b takes #1. Chosen over an arbitrary secondary
+formula because Accuracy is already the metric we'd trust most in isolation
+if forced to pick one.
+
 Dropping the two flat metrics meaningfully de-compresses the scale (was
-74-86, now 56-77) and reshuffles the ranking: gemma4:e4b and qwen3:4b now
-tie for first rather than gemma leading outright — the two metrics we
-dropped happened to slightly favor gemma's higher Discrimination score, which
-was itself just a byproduct of gemma's over-acceptance pattern, not a sign
-of better judgment. Removing it lets qwen3:4b's stronger nuanced accuracy
-and reasoning fully offset its weaker calibration.
+74-86, now 56-77). The two dropped metrics had happened to slightly favor
+gemma's higher Discrimination score, which was itself just a byproduct of
+gemma's over-acceptance pattern, not a sign of better judgment — removing it
+let qwen3:4b's stronger nuanced accuracy and reasoning fully show through.
 
 Cross-validates against the team's own extraction benchmark for the 2 models
 in common: gemma4:e4b (73/100) beat llama3.2 (59/100) there too — same
