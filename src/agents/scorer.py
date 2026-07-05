@@ -55,7 +55,10 @@ Schema:
 
 
 def _llm(model: str, base_url: str) -> ChatOllama:
-    return ChatOllama(model=model, base_url=base_url, format="json")
+    # See identical comment in agents/decision.py -- reasoning=False avoids
+    # deepseek-r1 (and similar) spending its whole response thinking and
+    # never emitting the requested JSON.
+    return ChatOllama(model=model, base_url=base_url, format="json", reasoning=False)
 
 
 def _prestige_score(rank: CoreRank | None) -> float:

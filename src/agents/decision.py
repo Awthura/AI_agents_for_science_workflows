@@ -50,7 +50,13 @@ Schema:
 
 
 def _llm(model: str, base_url: str) -> ChatOllama:
-    return ChatOllama(model=model, base_url=base_url, format="json")
+    # reasoning=False disables thinking mode on models that support it (e.g.
+    # deepseek-r1). Without this, the default (None) leaves <think>...</think>
+    # inline in response.content, and a reasoning model can spend its entire
+    # response thinking without ever emitting the requested JSON -- observed
+    # as a 98.8% parse-failure rate for deepseek-r1:7b in practice. No effect
+    # on non-reasoning models.
+    return ChatOllama(model=model, base_url=base_url, format="json", reasoning=False)
 
 
 def _format_conference(conf: Conference) -> str:
