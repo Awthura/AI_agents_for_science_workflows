@@ -44,7 +44,18 @@ from benchmark.decision_scoring_profiles import PROFILES  # noqa: E402
 
 OLLAMA_URL = "http://localhost:11434"
 DATA_FILE = Path(__file__).parent.parent.parent / "future_conferences.json"
-RESULTS_FILE = Path(__file__).parent / "decision_scoring_results.json"
+
+# Adds a second LLM call per conference that scrutinizes the decision agent's
+# own reasoning before finalizing (see agents/decision.py's _VALIDATION_SYSTEM)
+# -- targets the "generic AI-adjacency" and hallucinated-detail failure modes
+# documented in claude_judgments.md. Roughly doubles decision-agent latency.
+# Writes to a separate results file so the original baseline run (no
+# self-validation) is never overwritten -- the two files stay directly
+# comparable since they share the same schema.
+SELF_VALIDATE = True
+RESULTS_FILE = Path(__file__).parent / (
+    "decision_scoring_results_selfvalidated.json" if SELF_VALIDATE else "decision_scoring_results.json"
+)
 
 MODELS = [
     "gemma4:e4b",
@@ -77,6 +88,7 @@ def _save_results(results: list[dict]) -> None:
                 "run_at": datetime.now().isoformat(),
                 "models": MODELS,
                 "profile_count": len(PROFILES),
+                "self_validate": SELF_VALIDATE,
                 "results": results,
             },
             indent=2,
@@ -124,7 +136,7 @@ def main() -> None:
             error = None
             try:
                 accepted, rejected, decision_timing = run_decision_agent(
-                    pre_filtered, profile, model, OLLAMA_URL
+                    pre_filtered, profile, model, OLLAMA_URL, self_validate=SELF_VALIDATE
                 )
                 if accepted:
                     scored, scorer_timing = run_scorer(accepted, profile, model, OLLAMA_URL)
@@ -164,6 +176,15 @@ def main() -> None:
                         "valid": c.decision.valid if c.decision else None,
                         "relevant": c.decision.relevant if c.decision else None,
                         "reason": c.decision.reason if c.decision else None,
+                        # Only populated when SELF_VALIDATE=True and the
+                        # validation pass actually ran -- lets us measure how
+                        # often self-validation changed the outcome.
+                        "pre_validation_valid": c.decision_pre_validation.valid
+                        if c.decision_pre_validation else None,
+                        "pre_validation_relevant": c.decision_pre_validation.relevant
+                        if c.decision_pre_validation else None,
+                        "pre_validation_reason": c.decision_pre_validation.reason
+                        if c.decision_pre_validation else None,
                     }
                     for c in (accepted + rejected)
                 ],

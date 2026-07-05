@@ -74,6 +74,12 @@ class Conference(BaseModel):
     core_rank: Optional[CoreRank] = None
 
     decision: Optional[DecisionResult] = None
+    decision_pre_validation: Optional[DecisionResult] = Field(
+        None,
+        description="Decision agent's raw output before the self-validation pass overrides it "
+        "(only set when decide() is called with self_validate=True; lets the benchmark measure "
+        "how often self-validation actually changes the outcome).",
+    )
     scores: Optional[ConferenceScores] = None
 
 
