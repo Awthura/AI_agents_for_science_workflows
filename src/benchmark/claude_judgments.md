@@ -496,3 +496,173 @@ phi4-mini's problem) worse. A less asymmetric validation prompt — one that
 checks for *both* over-rejection and over-acceptance with equal scrutiny,
 rather than only hunting for "generic AI-adjacency" accepts — would be
 worth testing before considering this for the live pipeline.
+
+---
+
+# Few-Shot Prompting Experiment (v4)
+
+Tried a mechanistically different hallucination mitigation than
+self-validation: 4 worked examples added directly to the decision agent's
+system prompt (`agents/decision.py`'s `_FEWSHOT_EXAMPLES`, commit
+`7c6dd14`), each showing a correct-vs-wrong reasoning pair targeting the
+specific fabrication patterns documented above — generic "both involve
+AI/data" hand-waving, treating the coarse topic-category label as evidence
+of relevance, and what genuine specific overlap looks like. Pure prompt
+change: no added latency, no extra LLM calls, unlike self-validation.
+Results in `decision_scoring_results_fewshot.json` (`deepseek-r1:7b`
+excluded again — 85.1% parse failure, still unresolved, separate from this
+experiment).
+
+## Core finding: unlike self-validation, changes are balanced, not
+## systematically biased — and every model improves or holds flat
+
+Diffing fewshot decisions against the plain baseline (matched by model +
+profile + conference), the accept/reject flip counts are far more balanced
+than self-validation's reject-skew, except where a real fix was needed:
+
+| Model | accept→reject | reject→accept | unchanged |
+|---|---|---|---|
+| gemma4:e4b | 49 | 4 | 189 |
+| llama3.2 | 24 | 29 | 189 |
+| phi4-mini | 20 | 21 | 201 |
+| qwen3:4b | 25 | 22 | 195 |
+| granite4:3b | 28 | 13 | 201 |
+
+gemma4:e4b is the one model with a strong directional skew (49:4) — and
+that's exactly right, since its baseline problem *was* one-directional
+over-acceptance. Every other model shows roughly balanced changes in both
+directions, meaning the technique isn't just uniformly biasing toward
+stricter judgment (self-validation's failure) — it's letting each model
+recalibrate based on the actual examples.
+
+## Per-model findings, checked against each model's specific documented baseline flaw
+
+### gemma4:e4b — strong, clean fix of the prestige halo
+
+`BIGDATA` over-acceptance (documented at 14/20 profiles at baseline) dropped
+to 2/20, and the 2 remaining accepts (Distributed Storage Systems,
+Climate Modeling) are genuinely defensible matches. `ACCV` over-acceptance
+dropped from 7/20 to 2/20, with the 2 remaining (Adversarial ML Security,
+Neural Rendering) also legitimate computer-vision-adjacent matches.
+Reasoning is now specific and well-grounded — e.g. profile_idx=0 correctly
+rejects `BIGDATA`: "the researcher's work focuses on multi-agent LLM
+systems for knowledge discovery, which is conceptually distinct from
+general large-scale data processing," while profile_idx=9 correctly
+*accepts* it: "the researcher's work on 'Distributed Storage Systems for AI
+Training' is a core infrastructure component directly related to big data
+handling for ML." No sign of the old hand-waving.
+
+**Fewshot scores**: Accuracy ~90 (up from 85), Reasoning ~85 (up from 70),
+Calibration ~78 (up from 75). **Total: ~84** (up from 77).
+
+### qwen3:4b — direct, near-verbatim fix of its documented flaw
+
+Checked the exact baseline failure case: profile_idx=6 (Neural Rendering)
+previously accepted `ICASSP` and `NCMMSC` via topic-label literalism. With
+few-shot, both are now correctly rejected, and the reasoning for `ICASSP`
+is a near-verbatim match to Example 2 in the prompt: "Despite being tagged
+'Graphics' in this dataset, the conference's actual focus is acoustics and
+speech signal processing — a different modality from visual 3D rendering.
+A topic label is a coarse category, not proof of relevance." Confirms the
+example was directly effective, not a coincidental improvement.
+
+**Fewshot scores**: Accuracy ~90 (up from 87), Reasoning ~85 (up from 78),
+Calibration ~65 (flat — the decision/scorer internal contradiction found at
+baseline is a *scorer*-agent issue, not something a decision-agent prompt
+change would touch). **Total: ~80** (up from 77).
+
+### llama3.2 — fixes the under-acceptance misses, contamination persists partially
+
+All three of the clean baseline misses are now fixed: `SODA` correctly
+accepted for Computational Complexity, and both `CHI` and `IUI` correctly
+accepted for Accessible Interfaces. Some cross-profile contamination is
+also reduced — profile_idx=9's `SIGCSE`/`INFOCOM` rejections now correctly
+reference "distributed storage systems for AI training" (this profile's
+actual topic), not a different profile's language as at baseline. But
+contamination isn't eliminated: profile_idx=4 (Knowledge Graph
+Construction) wrongly accepts `BIBM` with reasoning describing "the
+researcher's blend of ML and public health/infectious diseases" — that's
+profile_idx=19's topic, not this one's. Few-shot examples target
+fabrication style, not the underlying attention/context-tracking mechanism
+behind contamination, so this is a partial, not complete, fix.
+
+**Fewshot scores**: Accuracy ~82 (up from 78), Reasoning ~60 (up from 47),
+Calibration ~72 (up slightly from 70). **Total: ~71** (up from 65).
+
+### phi4-mini — modest, partial improvement
+
+Checked all 4 of its documented baseline misses: `WSDM` for Vector Search
+is now correctly accepted (fixed), but `FSE` for Type Systems, `AAAI` for
+both Climate Modeling and Public Health Surveillance, and `SIGKDD` for
+Vector Search all remain incorrectly rejected, unchanged from baseline. The
+"conference validity litigation" quirk (spending effort on standalone-event
+status over topical fit) also isn't targeted by these examples and likely
+persists. Smallest improvement of the 5 models, but still not negative.
+
+**Fewshot scores**: Accuracy ~76 (up from 73), Reasoning ~63 (up from 60),
+Calibration ~75 (flat). **Total: ~71** (up from 69).
+
+### granite4:3b — fixes the confirmed miss, but its signature bug improves less than self-validation did
+
+profile_idx=12's `IUI` (Accessible Interfaces) — the specific confirmed
+wrong-reject caused by granite4:3b's reason-contradicts-decision bug at
+baseline — is now correctly accepted. But checking the broader defect rate
+(reason argues relevant while `relevant=false`): 22/242 (9.1%) still show
+it with few-shot, notably *higher* than self-validation's 4.1% (though
+still better than baseline's majority-of-profiles rate). Makes sense: self-
+validation explicitly forces a second pass to reconcile reasoning with the
+boolean, directly targeting this exact defect; few-shot examples calibrate
+topical judgment but don't structurally address reason/decision
+consistency the same way.
+
+**Fewshot scores**: Accuracy ~76 (up from 72), Reasoning ~40 (up from 25,
+but less than self-validation's 48), Calibration ~72 (flat). **Total: ~63**
+(up from 56, but below self-validation's 61 for this model specifically).
+
+## Full 3-way comparison
+
+| Model | Metric | Baseline | Self-validated | Few-shot |
+|---|---|---|---|---|
+| **gemma4:e4b** | Accuracy | 85 | 86 | **90** |
+| | Reasoning | 70 | 63 | **85** |
+| | Calibration | 75 | 75 | **78** |
+| | **Total** | 77 | 75 | **84** |
+| **qwen3:4b** | Accuracy | 87 | 79 | **90** |
+| | Reasoning | 78 | 72 | **85** |
+| | Calibration | 65 | 65 | 65 |
+| | **Total** | 77 | 72 | **80** |
+| **llama3.2** | Accuracy | 78 | 58 | **82** |
+| | Reasoning | 47 | 50 | **60** |
+| | Calibration | 70 | 65 | **72** |
+| | **Total** | 65 | 58 | **71** |
+| **phi4-mini** | Accuracy | 73 | 60 | **76** |
+| | Reasoning | 60 | 55 | **63** |
+| | Calibration | 75 | 72 | 75 |
+| | **Total** | 69 | 62 | **71** |
+| **granite4:3b** | Accuracy | 72 | 65 | **76** |
+| | Reasoning | 25 | **48** | 40 |
+| | Calibration | 72 | 70 | 72 |
+| | **Total** | 56 | **61** | 63 |
+| **deepseek-r1:7b** | — | excluded | excluded | excluded (85.1% parse failure) |
+
+**Ranking with few-shot**: gemma4:e4b (84) > qwen3:4b (80) > llama3.2 (71) ≈
+phi4-mini (71) > granite4:3b (63).
+
+## Conclusion
+
+**Few-shot prompting is the clear winner of the two techniques tried.**
+Every single model improves over baseline (granite4:3b's Reasoning is the
+one metric that improves less than self-validation achieved for that
+specific model, but its Total still improves). It's also strictly cheaper:
+no added latency or LLM calls, versus self-validation's ~2x decision-agent
+cost. The one remaining gap is granite4:3b's reason-contradicts-decision
+bug, which self-validation's explicit reconciliation step handles better —
+a plausible next experiment is combining both: few-shot examples for
+topical calibration plus a *reformed*, less reject-biased validation pass
+specifically for reason/decision consistency checking, rather than generic
+relevance re-litigation.
+
+**Recommendation**: adopt few-shot prompting for the live decision agent
+(`app.py`/`graph.py`'s default path, currently `few_shot=False`) given the
+consistent, no-cost improvement across all 5 models — this is a much
+stronger candidate for shipping than self-validation was.
