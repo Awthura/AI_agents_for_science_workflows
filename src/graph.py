@@ -134,6 +134,10 @@ def decide_node(state: PipelineState) -> dict[str, Any]:
         user_prefs=_prefs(state),
         model=state["model_name"],
         ollama_base_url=state["ollama_base_url"],
+        # Few-shot prompting improved every model in the benchmark (see
+        # src/benchmark/claude_judgments.md's "Few-Shot Prompting Experiment")
+        # at no added latency or cost -- default on for the live pipeline.
+        few_shot=True,
     )
     print(f"  [*] Decision agent: {len(accepted)} accepted, {len(rejected)} rejected.")
     for conf in rejected[:5]:
