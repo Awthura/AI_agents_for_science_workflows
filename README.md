@@ -36,6 +36,7 @@ User Preferences (location + research topic)
          ▼
 ┌───────────────────┐
 │  Decision Agent   │  Ollama LLM — validates conference + checks relevance
+│                   │  (few-shot prompted by default, see Models below)
 └────────┬──────────┘
          │  accepted conferences
          ▼
@@ -63,13 +64,20 @@ Each accepted conference is scored 0–100 on three axes:
 
 ```
 AI_agents_for_science_workflows/
+├── app.py                       # Gradio web GUI — primary interface (model dropdown, live log)
 ├── src/
 │   ├── agents/
-│   │   ├── decision.py          # Decision agent (LLM-based validation + relevance)
+│   │   ├── decision.py          # Decision agent (LLM-based validation + relevance, few-shot prompted)
 │   │   ├── scorer.py            # Scoring system (distance, relevancy, prestige)
 │   │   ├── scraper.py           # WikiCFP web-scraping agent
 │   │   ├── scraper2.py          # EasyChair web-scraping agent
 │   │   └── ccfddl_conferences.py# Converts CCF-Deadlines YAML → JSON
+│   ├── benchmark/
+│   │   ├── benchmark_pipeline.py          # Extraction benchmark (JSON-parsing accuracy per model)
+│   │   ├── decision_scoring_benchmark.py  # Decision/scoring quality benchmark (6 models x 20 profiles)
+│   │   ├── decision_scoring_profiles.py   # The 20 synthetic researcher profiles used above
+│   │   ├── decision_scoring_rubric.md     # Rubric for judging decision/scoring quality
+│   │   └── claude_judgments.md            # Claude-as-judge results + hallucination-mitigation experiments
 │   ├── fetcher/
 │   │   └── ccf-deadlines_fetcher.py  # Downloads CCF-Deadlines repo from GitHub
 │   ├── schemas/
@@ -82,9 +90,12 @@ AI_agents_for_science_workflows/
 │   ├── test_pipeline.py         # End-to-end benchmark test (multi-model, multi-profile)
 │   └── test_run.py              # Scraper-based test entry point
 ├── scripts/
-│   ├── setup_ollama.sh          # One-time Ollama install on cluster
+│   ├── setup_ollama.sh          # One-time Ollama install + model pull on cluster
 │   ├── setup_env.sh             # Python venv + requirements install on cluster
-│   └── start_ollama.sh          # Start Ollama server in a screen session
+│   ├── start_ollama.sh          # Start Ollama server in a screen session (pre-loads default model)
+│   ├── start_gui.sh             # Start the Gradio GUI in a screen session
+│   ├── run_decision_benchmark.sh# Run the decision/scoring benchmark in a screen session
+│   └── watch_benchmark.py       # Live tqdm progress bar for a running benchmark
 ├── docs/
 │   └── architecture.md          # Detailed architecture documentation
 ├── temp/                        # Gitignored — scraped conference cache
@@ -109,7 +120,7 @@ cd AI_agents_for_science_workflows
 bash scripts/setup_ollama.sh
 ```
 
-This downloads the Ollama binary to `/project/${LOGNAME}/ollama/`, sets up env vars in `~/.bashrc`, and pulls the default models (`llama3.2`, `gemma2:9b`).
+This downloads the Ollama binary to `/project/${LOGNAME}/ollama/`, sets up env vars in `~/.bashrc`, and pulls the default models (see Models below).
 
 ### 3. Set up Python environment
 
@@ -124,9 +135,27 @@ source venv/bin/activate
 bash scripts/start_ollama.sh
 ```
 
+### 5. Start the web GUI (every session)
+
+```bash
+bash scripts/start_gui.sh
+```
+
+Access at `http://<zone>:7860` (via SSH tunnel — see `docs/architecture.md`
+for the tunnel command). Pick a model from the dropdown, enter an address
+and research topic, and click **Run pipeline**. The dropdown shows a green
+"ready" mark next to whichever model Ollama currently has loaded in memory.
+
 ---
 
 ## Running the Pipeline
+
+### Web GUI (recommended)
+
+```bash
+python app.py           # full pipeline, requires Ollama running
+python app.py --demo     # demo mode with fake data, no Ollama needed
+```
 
 ### Fetch conference data
 
@@ -169,17 +198,37 @@ Prompts for location and research topic, then runs the full pipeline and prints 
 
 ## Models
 
-Both models are served locally via Ollama on the cluster:
+All 6 models are served locally via Ollama on the cluster (`scripts/setup_ollama.sh` pulls all of them):
 
-| Model | Role | Notes |
-|---|---|---|
-| `llama3.2` | Decision agent + scorer | Conservative, high precision |
-| `gemma2:9b` | Decision agent + scorer | Liberal, high recall |
+| Model | Notes |
+|---|---|
+| `gemma4:e4b` | Default / pre-loaded. Best performer on both the extraction benchmark (73/100) and the decision/scoring benchmark (see `src/benchmark/claude_judgments.md`) |
+| `llama3.2` | |
+| `phi4-mini` | |
+| `qwen3:4b` | Tied for best decision/scoring accuracy with gemma4:e4b |
+| `granite4:3b` | |
+| `deepseek-r1:7b` | Reasoning model — currently has a parse-failure issue under some configurations (see `claude_judgments.md`), needs a clean re-run to confirm the fix |
 
-Switch model via environment variable:
+Only one model is kept loaded in Ollama's memory at a time
+(`OLLAMA_MAX_LOADED_MODELS=1`, set by `scripts/start_ollama.sh`) — switching
+models in the GUI dropdown evicts the previous one automatically. Loading
+only happens lazily on "Run pipeline" click, not on dropdown change.
+
+For CLI use, switch model via environment variable:
 ```bash
-OLLAMA_MODEL=gemma2:9b python src/test_pipeline.py
+OLLAMA_MODEL=qwen3:4b python src/test_pipeline.py
 ```
+
+### Decision agent prompting
+
+The decision agent (`src/agents/decision.py`) uses **few-shot prompting** by
+default in the live pipeline — 4 worked examples in the system prompt that
+improved accuracy and reasoning quality for every one of the 5 benchmarked
+models (`deepseek-r1:7b` excluded, see note above), at no added latency
+(see `src/benchmark/claude_judgments.md`'s "Few-Shot Prompting Experiment"
+for the full write-up, including a head-to-head comparison against a
+self-validation approach that was tried first and found to be net-negative
+for most models).
 
 ---
 
@@ -193,3 +242,5 @@ See `requirements.txt`. Key packages:
 - `geopy` — address geocoding
 - `pydantic` — data validation
 - `rich` — terminal output
+- `gradio` — web GUI
+- `tqdm` — benchmark progress bars
