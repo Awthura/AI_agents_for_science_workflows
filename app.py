@@ -314,7 +314,14 @@ Enter your details below and click **Run** to get a personalised list of upcomin
         # happens lazily when "Run pipeline" is clicked (not on dropdown
         # change), so this just reflects whatever Ollama currently has
         # resident — including models loaded by other users' runs.
-        model_status_timer = gr.Timer(5)
+        # Interval kept fairly long (not e.g. 5s) because each tick is a
+        # round-trip over an SSH tunnel with no keepalive configured on the
+        # client side — a tighter interval just means more chances for a
+        # transient tunnel blip to surface as a "could not parse server
+        # response" toast in the browser. The indicator doesn't need to be
+        # second-fresh, so this trades a little staleness for far fewer
+        # spurious error popups.
+        model_status_timer = gr.Timer(25)
         model_status_timer.tick(
             fn=lambda url: gr.update(choices=_model_choices(url)),
             inputs=[ollama_url_box],
