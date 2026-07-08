@@ -10,11 +10,14 @@ Given a researcher's location and research topic, the system finds, filters, and
 
 ## Research Questions
 
-| RQ | Question |
-|---|---|
-| RQ1 | Which LLM is most compatible for each agent role? |
-| RQ2 | How do different models perform on web-scraping and decision-making tasks? |
-| RQ3 | How does the system perform with different complex individual preferences? |
+As of the 07.07.2026 progress presentation, framed per-agent around what's
+actually measurable from the two benchmarks (see [Benchmark Results](#benchmark-results)):
+
+| RQ | Question | Answered by |
+|---|---|---|
+| RQ1 | JSON Format Fidelity — how reliably do LLMs adhere to strict structural/syntactical formatting without manual intervention? | Discovery Agent extraction benchmark |
+| RQ2 | Decision Quality — how do LLMs differ in quality when evaluating formatted data using a predefined rule-based scoring system? | Decision Agent benchmark (LLM-as-judge) |
+| RQ3 | What model is the most compatible for each agent? | **Gemma4:e4b** — both Discovery and Decision agent |
 
 ---
 
@@ -95,7 +98,8 @@ AI_agents_for_science_workflows/
 │   ├── start_ollama.sh          # Start Ollama server in a screen session (pre-loads default model)
 │   ├── start_gui.sh             # Start the Gradio GUI in a screen session
 │   ├── run_decision_benchmark.sh# Run the decision/scoring benchmark in a screen session
-│   └── watch_benchmark.py       # Live tqdm progress bar for a running benchmark
+│   ├── watch_benchmark.py       # Live tqdm progress bar for a running benchmark
+│   └── check_status.sh          # Read-only status check: Ollama, GUI, tunnel (run on the cluster)
 ├── docs/
 │   └── architecture.md          # Detailed architecture documentation
 ├── temp/                        # Gitignored — scraped conference cache
@@ -229,6 +233,131 @@ models (`deepseek-r1:7b` excluded, see note above), at no added latency
 for the full write-up, including a head-to-head comparison against a
 self-validation approach that was tried first and found to be net-negative
 for most models).
+
+---
+
+## Benchmark Results
+
+### RQ1 — Discovery Agent: JSON Format Fidelity
+
+Extraction benchmark (`src/benchmark/benchmark_pipeline.py`): can each model
+turn scraped source text into schema-exact JSON — valid syntax, no
+hallucinated/missing keys, no conversational wrappers around the JSON?
+Scored 0–100 (60% information gathering via F1-score, 40% detail accuracy),
+with penalties for wrong schema (−10), markdown fences (−5), or swapped
+IDs/hallucinations (−2 each). See `src/benchmark/benchmark_4_with_score/evaluation_results.md`.
+
+![Discovery Agent extraction benchmark — model comparison](src/benchmark/benchmark_4_with_score/model_scores_chart.png)
+
+| Model | Score |
+|---|---|
+| **gemma4:e4b** | **73.0** |
+| llama3.2 | 59.2 |
+| qwen2.5:7b | 45.9 |
+| llama3 | 35.6 |
+| mistral:7b | 33.1 |
+
+### RQ2 — Decision Agent: Decision Quality
+
+No ground truth exists for "is this conference relevant" the way it does for
+extraction — it's a judgment call. So the decision agent is graded via
+**LLM-as-a-judge**: an independent model (Claude Sonnet 5) reaches its own
+blind verdict before ever seeing the target model's actual decision, avoiding
+anchoring bias (the standard "judge blind, then reveal and compare" protocol —
+see `src/benchmark/decision_scoring_rubric.md`, `claude_judgments.md`).
+
+```
+Run  →  Judge (blind)  →  Reveal & compare  →  Score
+```
+
+Scored equally (33.33% each) on:
+
+| Metric | Method |
+|---|---|
+| **DAcc** (Decision Accuracy) | Judge's blind accept/reject vs. the model's actual call |
+| **ReQual** (Reasoning Quality) | The `reason` string rated 1–5, independent of whether the decision was correct |
+| **Cal** (Relevancy Calibration) | `100 − mean(|model score − judge score|)` on accepted conferences |
+
+Two optimization techniques were tried against the **Generic** (single-prompt)
+baseline, across all 5 non-`deepseek-r1:7b` models (excluded — unresolved
+parse failure):
+
+| Method | Explanation |
+|---|---|
+| **Generic** | A single-prompt LLM call — the baseline |
+| **Self-Validation (-SV)** | A second LLM call reviews the first decision for hallucination/over-acceptance before finalizing |
+| **Few-Shot Reasoning (-FSR)** | Worked examples added directly to the system prompt, showing correct-vs-wrong reasoning for known fabrication patterns |
+
+**Table 1 — full results, 5 models × 3 variants** (bold = best per column):
+
+| Model | Variant | DAcc | ReQual | Cal | Total |
+|---|---|---|---|---|---|
+| gemma4:e4b | Generic | 85 | 70 | 75 | 77 |
+| | SV | 86 | 63 | 75 | 75 |
+| | FSR | **90** | **85** | **78** | **84** |
+| qwen3:4b | Generic | 87 | 78 | 65 | 77 |
+| | SV | 79 | 72 | 65 | 72 |
+| | FSR | **90** | **85** | 65 | 80 |
+| phi4-mini | Generic | 73 | 60 | 75 | 69 |
+| | SV | 60 | 55 | 72 | 62 |
+| | FSR | 76 | 63 | 75 | 71 |
+| llama3.2 | Generic | 78 | 47 | 70 | 65 |
+| | SV | 58 | 50 | 65 | 58 |
+| | FSR | 82 | 60 | 72 | 71 |
+| granite4:3b | Generic | 72 | 25 | 72 | 56 |
+| | SV | 65 | 48 | 70 | 61 |
+| | FSR | 76 | 40 | 72 | 63 |
+
+*Total is an equal-weighted average of DAcc/ReQual/Cal (minus any triggered
+penalties), not a sum — e.g. gemma4:e4b Generic: (85+70+75)/3 = 76.67 ≈ 77.*
+
+**Table 2 — delta vs. Generic baseline, same model** (bold = best per column):
+
+| Model | Variant | ΔDAcc | ΔReQual | ΔCal | ΔTotal |
+|---|---|---|---|---|---|
+| gemma4:e4b | SV | +1 | −7 | 0 | −2 |
+| | FSR | **+5** | +15 | **+3** | **+7** |
+| qwen3:4b | SV | −8 | −6 | 0 | −5 |
+| | FSR | +3 | +7 | 0 | +3 |
+| phi4-mini | SV | −13 | −5 | −3 | −7 |
+| | FSR | +3 | +3 | 0 | +2 |
+| llama3.2 | SV | −20 | +3 | −5 | −7 |
+| | FSR | +4 | +13 | +2 | +6 |
+| granite4:3b | SV | −7 | **+23** | −2 | +5 |
+| | FSR | +4 | +15 | 0 | **+7** |
+
+**The headline result**: Self-Validation is net-negative for 4 of 5 models
+(a "skeptical reviewer" framing introduces a systematic reject-bias), while
+Few-Shot Reasoning improves every single model at **zero added latency or
+LLM calls** — the cheaper technique won outright. This is why `few_shot=True`
+is the live default (see below) and self-validation was never shipped.
+
+**Table 3 — FSR mean decision-call latency**, model-loading excluded (bold = fastest):
+
+| Model | gemma4:e4b | qwen3:4b | phi4-mini | llama3.2 | granite4:3b |
+|---|---|---|---|---|---|
+| Latency (s) | 1.78 | 1.14 | 1.24 | 1.03 | **0.96** |
+
+All 5 FSR-variant models on one radar (DAcc, ReQual, Cal, Total, and Speed —
+inverted latency, so faster sits further out):
+
+![Decision Agent — all 5 models, FSR variant, one radar](src/benchmark/decision_agent_radar_fsr.png)
+
+### RQ3 — Best Model Per Agent
+
+| Agent | Best model |
+|---|---|
+| Discovery Agent | **gemma4:e4b** |
+| Decision Agent | **gemma4:e4b** |
+
+`gemma4:e4b` wins both benchmarks outright — independent cross-validation
+across two different tasks. `qwen3:4b` is a close second on decision quality
+(FSR total 80 vs. 84) and, on the FSR variant, is also faster than
+gemma4:e4b (1.14s vs. 1.78s/call — Table 3). That's a reversal from the
+Generic baseline, where `qwen3:4b` was by far the slowest model tested
+(10–18s/call, see `claude_judgments.md`) — a reminder that these two
+optimization techniques change more than just quality scores, they can
+reshuffle relative latency between models too.
 
 ---
 
